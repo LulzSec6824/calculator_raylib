@@ -1,5 +1,6 @@
 #include <raylib.h>
 
+#include <iomanip>
 #include <sstream>
 #include <string>
 
@@ -17,12 +18,11 @@ int main() {
 
     CalculatorState state = INPUT_A;
     std::string inputA, inputB;
-    int a = 0, b = 0, choice = 0;
+    long long a = 0, b = 0, choice = 0;  // Support large numbers
     double result          = 0;
     std::string resultText = "";
 
     while (!WindowShouldClose()) {
-        IsWindowFullscreen();
         if (IsKeyPressed(KEY_F11)) {
             ToggleFullscreen();
         } else if (IsKeyPressed(KEY_ESCAPE)) {
@@ -38,7 +38,7 @@ int main() {
                 key = GetCharPressed();
             }
             if (IsKeyPressed(KEY_ENTER) && !inputA.empty()) {
-                a     = std::stoi(inputA);
+                a     = std::stoll(inputA);  // Use stoll for large numbers
                 state = INPUT_B;
             }
         } else if (state == INPUT_B) {
@@ -49,7 +49,7 @@ int main() {
                 key = GetCharPressed();
             }
             if (IsKeyPressed(KEY_ENTER) && !inputB.empty()) {
-                b     = std::stoi(inputB);
+                b     = std::stoll(inputB);  // Use stoll for large numbers
                 state = CHOOSE_OP;
             }
         } else if (state == CHOOSE_OP) {
@@ -59,6 +59,7 @@ int main() {
             if (IsKeyPressed(KEY_FOUR)) choice = 4;
             if (choice > 0) {
                 std::ostringstream oss;
+                oss << std::fixed << std::setprecision(2);
                 switch (choice) {
                     case 1:
                         result = a + b;
