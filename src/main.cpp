@@ -137,11 +137,65 @@ int main() {
         BeginDrawing();
         ClearBackground(RAYWHITE);
 
-        // Display area (upper: expression, lower: current input/result)
-        DrawRectangle(leftOffset, 30, btnW * 4 + margin * 3, 70, LIGHTGRAY);
-        DrawTextEx(font, expression.c_str(), {(float)(leftOffset + 10), 38}, 24,
-                   0, DARKGRAY);
-        DrawTextEx(font, display.c_str(), {(float)(leftOffset + 10), 65}, 40, 0,
+        // Define layout variables if not already defined
+        int padding       = 24;
+        int buttonRows    = 5;
+        int buttonHeight  = 64;
+        int buttonSpacing = 12;
+
+        // Calculate display box position and size
+        int displayBoxWidth  = screenWidth - 2 * padding;
+        int displayBoxHeight = 110;
+        int displayBoxX      = padding;
+        int displayBoxY =
+            (screenHeight - (displayBoxHeight +
+                             (buttonRows * (buttonHeight + buttonSpacing)))) /
+            2;
+        Rectangle displayBox = {(float)displayBoxX, (float)displayBoxY,
+                                (float)displayBoxWidth,
+                                (float)displayBoxHeight};
+
+        // Draw display box (single, main background)
+        DrawRectangleRounded(displayBox, 0.1f, 16, LIGHTGRAY);
+        DrawRectangleRoundedLines(displayBox, 0.1f, 16, GRAY);
+
+        // Helper function to truncate string to fit width
+        auto TruncateToFit = [&](const std::string& text, float fontSize,
+                                 float maxWidth) {
+            std::string result = text;
+            while (MeasureTextEx(font, result.c_str(), fontSize, 0).x >
+                       maxWidth &&
+                   result.length() > 1) {
+                result.erase(0, 1);
+            }
+            if (result != text && result.length() > 1) {
+                result[0] = '.';
+            }
+            return result;
+        };
+
+        // Calculate text sizes for alignment
+        float exprFontSize = 32.0f;
+        float dispFontSize = 48.0f;
+        float maxTextWidth = displayBox.width - 40;
+        std::string exprToDraw =
+            TruncateToFit(expression, exprFontSize, maxTextWidth);
+        std::string dispToDraw =
+            TruncateToFit(display, dispFontSize, maxTextWidth);
+        Vector2 exprSize =
+            MeasureTextEx(font, exprToDraw.c_str(), exprFontSize, 0);
+        Vector2 dispSize =
+            MeasureTextEx(font, dispToDraw.c_str(), dispFontSize, 0);
+
+        // Right-align expression and display text within the display box
+        float exprX = displayBox.x + displayBox.width - exprSize.x - 20;
+        float exprY = displayBox.y + 10;
+        float dispX = displayBox.x + displayBox.width - dispSize.x - 20;
+        float dispY = displayBox.y + displayBox.height - dispSize.y - 20;
+
+        DrawTextEx(font, exprToDraw.c_str(), {exprX, exprY}, exprFontSize, 0,
+                   DARKGRAY);
+        DrawTextEx(font, dispToDraw.c_str(), {dispX, dispY}, dispFontSize, 0,
                    BLACK);
 
         // Draw buttons
