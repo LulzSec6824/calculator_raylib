@@ -9,7 +9,12 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 add_executable(${PROJECT_NAME})
 target_sources(${PROJECT_NAME}
     PRIVATE
-        src/main.cpp
+       src/main.cpp
+       src/calculator.cpp
+       src/button.cpp
+       src/button.h
+       src/calculator.h
+       
 )
 
 target_link_libraries(${PROJECT_NAME}
