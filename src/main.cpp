@@ -3,131 +3,152 @@
 #include <iomanip>
 #include <sstream>
 #include <string>
+#include <vector>
 
-enum CalculatorState { INPUT_A, INPUT_B, CHOOSE_OP, SHOW_RESULT };
+struct Button {
+    Rectangle rect;
+    std::string label;
+    int id;
+};
 
 int main() {
-    int screenWidth  = 800;
-    int screenHeight = 600;
-
+    int screenWidth  = 350;
+    int screenHeight = 500;
     InitWindow(screenWidth, screenHeight, "Calculator in RAYLIB");
     SetTargetFPS(60);
+    Font font = LoadFontEx("resource/Ubuntu-Regular.ttf", 64, 0, 0);
+    SetTextureFilter(font.texture, TEXTURE_FILTER_BILINEAR);
 
-    // Load CascadiaCode font from resource folder
-    Font cascFont = LoadFont("resource/CascadiaCode-Regular.ttf");
+    std::string display = "0";
+    double operand1 = 0, operand2 = 0;
+    char op             = 0;
+    bool enteringSecond = false, justEvaluated = false;
 
-    CalculatorState state = INPUT_A;
-    std::string inputA, inputB;
-    long long a = 0, b = 0, choice = 0;  // Support large numbers
-    double result          = 0;
-    std::string resultText = "";
+    // Button layout (label, id)
+    std::vector<std::vector<std::pair<std::string, int>>> layout = {
+        {{"CE", 100}, {"C", 101}, {"<-", 102}, {"/", '/'}},
+        {{"7", '7'}, {"8", '8'}, {"9", '9'}, {"*", '*'}},
+        {{"4", '4'}, {"5", '5'}, {"6", '6'}, {"-", '-'}},
+        {{"1", '1'}, {"2", '2'}, {"3", '3'}, {"+", '+'}},
+        {{"+/-", 103}, {"0", '0'}, {".", '.'}, {"=", '='}}};
+
+    std::vector<Button> buttons;
+    int btnW = 75, btnH = 60, margin = 10, topOffset = 120, leftOffset = 10;
+    for (int row = 0; row < layout.size(); ++row) {
+        for (int col = 0; col < layout[row].size(); ++col) {
+            Button btn;
+            btn.rect  = {(float)(leftOffset + col * (btnW + margin)),
+                         (float)(topOffset + row * (btnH + margin)), (float)btnW,
+                         (float)btnH};
+            btn.label = layout[row][col].first;
+            btn.id    = layout[row][col].second;
+            buttons.push_back(btn);
+        }
+    }
 
     while (!WindowShouldClose()) {
-        if (IsKeyPressed(KEY_F11)) {
-            ToggleFullscreen();
-        } else if (IsKeyPressed(KEY_ESCAPE)) {
-            CloseWindow();
-            return 0;
-        }
-        // Input handling
-        if (state == INPUT_A) {
-            int key = GetCharPressed();
-            while (key > 0) {
-                if ((key >= '0' && key <= '9') || key == '-')
-                    inputA += (char)key;
-                key = GetCharPressed();
-            }
-            if (IsKeyPressed(KEY_ENTER) && !inputA.empty()) {
-                a     = std::stoll(inputA);  // Use stoll for large numbers
-                state = INPUT_B;
-            }
-        } else if (state == INPUT_B) {
-            int key = GetCharPressed();
-            while (key > 0) {
-                if ((key >= '0' && key <= '9') || key == '-')
-                    inputB += (char)key;
-                key = GetCharPressed();
-            }
-            if (IsKeyPressed(KEY_ENTER) && !inputB.empty()) {
-                b     = std::stoll(inputB);  // Use stoll for large numbers
-                state = CHOOSE_OP;
-            }
-        } else if (state == CHOOSE_OP) {
-            if (IsKeyPressed(KEY_ONE)) choice = 1;
-            if (IsKeyPressed(KEY_TWO)) choice = 2;
-            if (IsKeyPressed(KEY_THREE)) choice = 3;
-            if (IsKeyPressed(KEY_FOUR)) choice = 4;
-            if (choice > 0) {
-                std::ostringstream oss;
-                oss << std::fixed << std::setprecision(2);
-                switch (choice) {
-                    case 1:
-                        result = a + b;
-                        oss << "Result: " << result;
-                        break;
-                    case 2:
-                        result = a - b;
-                        oss << "Result: " << result;
-                        break;
-                    case 3:
-                        result = a * b;
-                        oss << "Result: " << result;
-                        break;
-                    case 4:
-                        if (b != 0) {
-                            result = double(a) / b;
-                            oss << "Result: " << result;
-                        } else {
-                            oss << "Error: Division by zero!";
-                        }
-                        break;
+        Vector2 mouse = GetMousePosition();
+        int clicked   = -1;
+        if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
+            for (auto& btn : buttons) {
+                if (CheckCollisionPointRec(mouse, btn.rect)) {
+                    clicked = btn.id;
+                    break;
                 }
-                resultText = oss.str();
-                state      = SHOW_RESULT;
-            }
-        } else if (state == SHOW_RESULT) {
-            if (IsKeyPressed(KEY_R)) {
-                inputA.clear();
-                inputB.clear();
-                a = b = choice = 0;
-                result         = 0;
-                resultText.clear();
-                state = INPUT_A;
             }
         }
 
-        // Drawing
+        if (clicked != -1) {
+            if (clicked >= '0' && clicked <= '9') {
+                if (display == "0" || justEvaluated) display = "";
+                display += (char)clicked;
+                justEvaluated = false;
+            } else if (clicked == '.') {
+                if (display.find('.') == std::string::npos) display += ".";
+            } else if (clicked == 100 || clicked == 101) {  // CE or C
+                display       = "0";
+                operand1      = 0;
+                op            = 0;
+                justEvaluated = false;
+            } else if (clicked == 102) {  // Backspace
+                if (display.size() > 1)
+                    display.pop_back();
+                else
+                    display = "0";
+            } else if (clicked == 103) {  // +/-
+                if (display[0] == '-')
+                    display = display.substr(1);
+                else if (display != "0")
+                    display = "-" + display;
+            } else if (clicked == '+' || clicked == '-' || clicked == '*' ||
+                       clicked == '/') {
+                operand1      = std::stod(display);
+                op            = (char)clicked;
+                justEvaluated = false;
+                display       = "0";
+            } else if (clicked == '=') {
+                operand2      = std::stod(display);
+                double result = 0;
+                bool error    = false;
+                switch (op) {
+                    case '+':
+                        result = operand1 + operand2;
+                        break;
+                    case '-':
+                        result = operand1 - operand2;
+                        break;
+                    case '*':
+                        result = operand1 * operand2;
+                        break;
+                    case '/':
+                        if (operand2 == 0)
+                            error = true;
+                        else
+                            result = operand1 / operand2;
+                        break;
+                    default:
+                        result = operand2;
+                }
+
+                std::ostringstream oss;
+                if (error)
+                    oss << "Error";
+                else
+                    oss << std::fixed << std::setprecision(10) << result;
+                display = oss.str();
+                // Remove trailing zeros
+                display.erase(display.find_last_not_of('0') + 1,
+                              std::string::npos);
+                if (display.back() == '.') display.pop_back();
+                justEvaluated = true;
+                op            = 0;
+            }
+        }
         BeginDrawing();
         ClearBackground(RAYWHITE);
 
-        // Use cascFont for all DrawText calls
-        DrawTextEx(cascFont, "Calculator", {20, 20}, 30, 0, DARKGRAY);
+        // Display area
+        DrawRectangle(leftOffset, 30, btnW * 4 + margin * 3, 70, LIGHTGRAY);
+        DrawTextEx(font, display.c_str(), {(float)(leftOffset + 10), 50}, 40, 0,
+                   BLACK);
 
-        if (state == INPUT_A) {
-            DrawTextEx(cascFont, "Enter first number (press Enter):", {20, 80},
-                       20, 0, BLACK);
-            DrawTextEx(cascFont, inputA.c_str(), {20, 110}, 30, 0, BLUE);
-        } else if (state == INPUT_B) {
-            DrawTextEx(cascFont, "Enter second number (press Enter):", {20, 80},
-                       20, 0, BLACK);
-            DrawTextEx(cascFont, inputB.c_str(), {20, 110}, 30, 0, BLUE);
-        } else if (state == CHOOSE_OP) {
-            DrawTextEx(cascFont, "Choose operation (press key):", {20, 80}, 20,
-                       0, BLACK);
-            DrawTextEx(cascFont, "1. Addition", {20, 110}, 20, 0, DARKGRAY);
-            DrawTextEx(cascFont, "2. Subtraction", {20, 140}, 20, 0, DARKGRAY);
-            DrawTextEx(cascFont, "3. Multiplication", {20, 170}, 20, 0,
-                       DARKGRAY);
-            DrawTextEx(cascFont, "4. Division", {20, 200}, 20, 0, DARKGRAY);
-        } else if (state == SHOW_RESULT) {
-            DrawTextEx(cascFont, resultText.c_str(), {20, 80}, 30, 0, RED);
-            DrawTextEx(cascFont, "Press R to restart.", {20, 120}, 20, 0, GRAY);
+        // Draw buttons
+        for (auto& btn : buttons) {
+            Color btnColor =
+                CheckCollisionPointRec(mouse, btn.rect) ? SKYBLUE : WHITE;
+            DrawRectangleRec(btn.rect, btnColor);
+            DrawRectangleLinesEx(btn.rect, 2, GRAY);
+            int fontSize = 28;
+            Vector2 textSize =
+                MeasureTextEx(font, btn.label.c_str(), fontSize, 0);
+            DrawTextEx(font, btn.label.c_str(),
+                       {btn.rect.x + (btn.rect.width - textSize.x) / 2,
+                        btn.rect.y + (btn.rect.height - textSize.y) / 2},
+                       fontSize, 0, BLACK);
         }
-
         EndDrawing();
     }
-    // Unload font before closing window
-    UnloadFont(cascFont);
+    UnloadFont(font);
     CloseWindow();
     return 0;
 }
