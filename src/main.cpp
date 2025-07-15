@@ -19,7 +19,8 @@ int main() {
     Font font = LoadFontEx("resource/Ubuntu-Regular.ttf", 64, 0, 0);
     SetTextureFilter(font.texture, TEXTURE_FILTER_BILINEAR);
 
-    std::string display = "0";
+    std::string display    = "0";
+    std::string expression = "";
     double operand1 = 0, operand2 = 0;
     char op             = 0;
     bool enteringSecond = false, justEvaluated = false;
@@ -61,12 +62,18 @@ int main() {
         if (clicked != -1) {
             if (clicked >= '0' && clicked <= '9') {
                 if (display == "0" || justEvaluated) display = "";
+                if (justEvaluated) expression = "";
                 display += (char)clicked;
+                expression += (char)clicked;
                 justEvaluated = false;
             } else if (clicked == '.') {
-                if (display.find('.') == std::string::npos) display += ".";
+                if (display.find('.') == std::string::npos) {
+                    display += ".";
+                    expression += ".";
+                }
             } else if (clicked == 100 || clicked == 101) {  // CE or C
                 display       = "0";
+                expression    = "";
                 operand1      = 0;
                 op            = 0;
                 justEvaluated = false;
@@ -75,17 +82,20 @@ int main() {
                     display.pop_back();
                 else
                     display = "0";
+                if (!expression.empty()) expression.pop_back();
             } else if (clicked == 103) {  // +/-
                 if (display[0] == '-')
                     display = display.substr(1);
                 else if (display != "0")
                     display = "-" + display;
+                // Expression sign toggle is not appended
             } else if (clicked == '+' || clicked == '-' || clicked == '*' ||
                        clicked == '/') {
                 operand1      = std::stod(display);
                 op            = (char)clicked;
                 justEvaluated = false;
-                display       = "0";
+                expression += (char)clicked;
+                display = "0";
             } else if (clicked == '=') {
                 operand2      = std::stod(display);
                 double result = 0;
@@ -109,7 +119,6 @@ int main() {
                     default:
                         result = operand2;
                 }
-
                 std::ostringstream oss;
                 if (error)
                     oss << "Error";
@@ -120,6 +129,7 @@ int main() {
                 display.erase(display.find_last_not_of('0') + 1,
                               std::string::npos);
                 if (display.back() == '.') display.pop_back();
+                expression += "=";
                 justEvaluated = true;
                 op            = 0;
             }
@@ -127,9 +137,11 @@ int main() {
         BeginDrawing();
         ClearBackground(RAYWHITE);
 
-        // Display area
+        // Display area (upper: expression, lower: current input/result)
         DrawRectangle(leftOffset, 30, btnW * 4 + margin * 3, 70, LIGHTGRAY);
-        DrawTextEx(font, display.c_str(), {(float)(leftOffset + 10), 50}, 40, 0,
+        DrawTextEx(font, expression.c_str(), {(float)(leftOffset + 10), 38}, 24,
+                   0, DARKGRAY);
+        DrawTextEx(font, display.c_str(), {(float)(leftOffset + 10), 65}, 40, 0,
                    BLACK);
 
         // Draw buttons
