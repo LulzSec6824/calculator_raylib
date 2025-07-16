@@ -85,7 +85,11 @@ jobs:
         EXEC_PATH="${{ steps.strings.outputs.build-output-dir }}${{ matrix.os == 'windows-latest' && format('/{0}', matrix.build_type) || '' }}/ray${{ matrix.os == 'windows-latest' && '.exe' || '' }}"
         cmake -E copy "$EXEC_PATH" "release/"
         cmake -E copy_directory "${{ steps.strings.outputs.build-output-dir }}/resource" "release/resource"
-        (cd release && zip -r ../${{ matrix.os }}-${{ matrix.c_compiler }}-raylib-calculator.zip .)
+        if [ "${{ runner.os }}" == "Windows" ]; then
+          powershell -Command "Compress-Archive -Path release/* -DestinationPath ${{ matrix.os }}-${{ matrix.c_compiler }}-raylib-calculator.zip"
+        else
+          (cd release && zip -r ../${{ matrix.os }}-${{ matrix.c_compiler }}-raylib-calculator.zip .)
+        fi
 
     - name: Upload Artifact
       uses: actions/upload-artifact@v4
