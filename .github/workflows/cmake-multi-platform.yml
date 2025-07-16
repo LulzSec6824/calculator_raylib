@@ -4,11 +4,11 @@ name: CMake on multiple platforms
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "testing" ]
     tags:
       - 'v*'
   pull_request:
-    branches: [ "main" ]
+    branches: [ "testing" ]
 
 jobs:
   build:
@@ -82,15 +82,16 @@ jobs:
       shell: bash
       run: |
         mkdir release
-        cp ${{ steps.strings.outputs.build-output-dir }}/${{ matrix.build_type }}/ray${{ matrix.os == 'windows-latest' && '.exe' || '' }} release/
+        EXEC_PATH="${{ steps.strings.outputs.build-output-dir }}${{ matrix.os == 'windows-latest' && format('/{0}', matrix.build_type) || '' }}/ray${{ matrix.os == 'windows-latest' && '.exe' || '' }}"
+        cp "$EXEC_PATH" release/
         cp -r ${{ steps.strings.outputs.build-output-dir }}/resource release/
-        zip -r ${{ matrix.os }}-raylib-calculator.zip release/
+        zip -r ${{ matrix.os }}-${{ matrix.c_compiler }}-raylib-calculator.zip release/
 
     - name: Upload Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: ${{ matrix.os }}-artifact
-        path: ${{ matrix.os }}-raylib-calculator.zip
+        name: ${{ matrix.os }}-${{ matrix.c_compiler }}-artifact
+        path: ${{ matrix.os }}-${{ matrix.c_compiler }}-raylib-calculator.zip
 
   release:
     runs-on: ubuntu-latest
@@ -103,6 +104,7 @@ jobs:
         path: artifacts
 
     - name: Create Release
+      id: create_release
       uses: actions/create-release@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -112,14 +114,24 @@ jobs:
         draft: false
         prerelease: false
 
-    - name: Upload Release Assets
+    - name: Upload Ubuntu GCC Asset
       uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: artifacts/ubuntu-latest-artifact/ubuntu-latest-raylib-calculator.zip
-        asset_name: ubuntu-raylib-calculator.zip
+        asset_path: artifacts/ubuntu-latest-gcc-artifact/ubuntu-latest-gcc-raylib-calculator.zip
+        asset_name: ubuntu-gcc-raylib-calculator.zip
+        asset_content_type: application/zip
+
+    - name: Upload Ubuntu Clang Asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: artifacts/ubuntu-latest-clang-artifact/ubuntu-latest-clang-raylib-calculator.zip
+        asset_name: ubuntu-clang-raylib-calculator.zip
         asset_content_type: application/zip
 
     - name: Upload Windows Asset
@@ -128,6 +140,6 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: artifacts/windows-latest-artifact/windows-latest-raylib-calculator.zip
+        asset_path: artifacts/windows-latest-cl-artifact/windows-latest-cl-raylib-calculator.zip
         asset_name: windows-raylib-calculator.zip
         asset_content_type: application/zip
