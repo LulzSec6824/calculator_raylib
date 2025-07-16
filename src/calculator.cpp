@@ -1,9 +1,16 @@
-#include "calculator.h"
+#include "../includes/calculator.h"
+
 #include <iomanip>
 #include <sstream>
 
 CalculatorState::CalculatorState()
-    : display("0"), expression(""), operand1(0), operand2(0), op(0), enteringSecond(false), justEvaluated(false) {}
+    : display("0"),
+      expression(""),
+      operand1(0),
+      operand2(0),
+      op(0),
+      enteringSecond(false),
+      justEvaluated(false) {}
 
 void HandleButtonPress(CalculatorState& state, int clicked) {
     if (clicked >= '0' && clicked <= '9') {
@@ -18,10 +25,10 @@ void HandleButtonPress(CalculatorState& state, int clicked) {
             state.expression += ".";
         }
     } else if (clicked == 100 || clicked == 101) {  // CE or C
-        state.display = "0";
-        state.expression = "";
-        state.operand1 = 0;
-        state.op = 0;
+        state.display       = "0";
+        state.expression    = "";
+        state.operand1      = 0;
+        state.op            = 0;
         state.justEvaluated = false;
     } else if (clicked == 102) {  // Backspace
         if (state.display.size() > 1)
@@ -35,27 +42,35 @@ void HandleButtonPress(CalculatorState& state, int clicked) {
         else if (state.display != "0")
             state.display = "-" + state.display;
         // Expression sign toggle is not appended
-    } else if (clicked == '+' || clicked == '-' || clicked == '*' || clicked == '/') {
-        state.operand1 = std::stod(state.display);
-        state.op = (char)clicked;
+    } else if (clicked == '+' || clicked == '-' || clicked == '*' ||
+               clicked == '/') {
+        state.operand1      = std::stod(state.display);
+        state.op            = (char)clicked;
         state.justEvaluated = false;
         state.expression += (char)clicked;
         state.display = "0";
     } else if (clicked == '=') {
         state.operand2 = std::stod(state.display);
-        double result = 0;
-        bool error = false;
+        double result  = 0;
+        bool error     = false;
         switch (state.op) {
-            case '+': result = state.operand1 + state.operand2; break;
-            case '-': result = state.operand1 - state.operand2; break;
-            case '*': result = state.operand1 * state.operand2; break;
+            case '+':
+                result = state.operand1 + state.operand2;
+                break;
+            case '-':
+                result = state.operand1 - state.operand2;
+                break;
+            case '*':
+                result = state.operand1 * state.operand2;
+                break;
             case '/':
                 if (state.operand2 == 0)
                     error = true;
                 else
                     result = state.operand1 / state.operand2;
                 break;
-            default: result = state.operand2;
+            default:
+                result = state.operand2;
         }
         std::ostringstream oss;
         if (error)
@@ -64,10 +79,12 @@ void HandleButtonPress(CalculatorState& state, int clicked) {
             oss << std::fixed << std::setprecision(10) << result;
         state.display = oss.str();
         // Remove trailing zeros
-        state.display.erase(state.display.find_last_not_of('0') + 1, std::string::npos);
-        if (!state.display.empty() && state.display.back() == '.') state.display.pop_back();
+        state.display.erase(state.display.find_last_not_of('0') + 1,
+                            std::string::npos);
+        if (!state.display.empty() && state.display.back() == '.')
+            state.display.pop_back();
         state.expression += "=";
         state.justEvaluated = true;
-        state.op = 0;
+        state.op            = 0;
     }
 }

@@ -14,8 +14,8 @@ target_sources(${PROJECT_NAME}
        src/main.cpp
        src/calculator.cpp
        src/button.cpp
-       src/button.h
-       src/calculator.h
+       includes/button.h
+       includes/calculator.h
        
 )
 

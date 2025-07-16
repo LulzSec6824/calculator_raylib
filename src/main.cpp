@@ -4,8 +4,9 @@
 #include <sstream>
 #include <string>
 #include <vector>
-#include "button.h"
-#include "calculator.h"
+
+#include "../includes/button.h"
+#include "../includes/calculator.h"
 
 int main() {
     int screenWidth  = 350;
@@ -17,7 +18,8 @@ int main() {
 
     CalculatorState calc;
     int btnW = 75, btnH = 60, margin = 10, topOffset = 120, leftOffset = 10;
-    std::vector<Button> buttons = CreateButtons(btnW, btnH, margin, topOffset, leftOffset);
+    std::vector<Button> buttons =
+        CreateButtons(btnW, btnH, margin, topOffset, leftOffset);
     while (!WindowShouldClose()) {
         Vector2 mouse = GetMousePosition();
         int clicked   = -1;
@@ -76,10 +78,14 @@ int main() {
         float exprFontSize = 32.0f;
         float dispFontSize = 48.0f;
         float maxTextWidth = displayBox.width - 40;
-        std::string exprToDraw = TruncateToFit(calc.expression, exprFontSize, maxTextWidth);
-        std::string dispToDraw = TruncateToFit(calc.display, dispFontSize, maxTextWidth);
-        Vector2 exprSize = MeasureTextEx(font, exprToDraw.c_str(), exprFontSize, 0);
-        Vector2 dispSize = MeasureTextEx(font, dispToDraw.c_str(), dispFontSize, 0);
+        std::string exprToDraw =
+            TruncateToFit(calc.expression, exprFontSize, maxTextWidth);
+        std::string dispToDraw =
+            TruncateToFit(calc.display, dispFontSize, maxTextWidth);
+        Vector2 exprSize =
+            MeasureTextEx(font, exprToDraw.c_str(), exprFontSize, 0);
+        Vector2 dispSize =
+            MeasureTextEx(font, dispToDraw.c_str(), dispFontSize, 0);
 
         // Right-align expression and display text within the display box
         float exprX = displayBox.x + displayBox.width - exprSize.x - 20;
@@ -87,8 +93,10 @@ int main() {
         float dispX = displayBox.x + displayBox.width - dispSize.x - 20;
         float dispY = displayBox.y + displayBox.height - dispSize.y - 20;
 
-        DrawTextEx(font, exprToDraw.c_str(), {exprX, exprY}, exprFontSize, 0, DARKGRAY);
-        DrawTextEx(font, dispToDraw.c_str(), {dispX, dispY}, dispFontSize, 0, BLACK);
+        DrawTextEx(font, exprToDraw.c_str(), {exprX, exprY}, exprFontSize, 0,
+                   DARKGRAY);
+        DrawTextEx(font, dispToDraw.c_str(), {dispX, dispY}, dispFontSize, 0,
+                   BLACK);
 
         // Draw buttons
         DrawButtons(buttons, font, mouse);
