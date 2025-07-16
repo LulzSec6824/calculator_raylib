@@ -44,6 +44,9 @@ void HandleButtonPress(CalculatorState& state, int clicked) {
         // Expression sign toggle is not appended
     } else if (clicked == '+' || clicked == '-' || clicked == '*' ||
                clicked == '/') {
+        if (state.justEvaluated) {
+            state.expression = state.display;
+        }
         state.operand1      = std::stod(state.display);
         state.op            = (char)clicked;
         state.justEvaluated = false;
@@ -83,7 +86,6 @@ void HandleButtonPress(CalculatorState& state, int clicked) {
                             std::string::npos);
         if (!state.display.empty() && state.display.back() == '.')
             state.display.pop_back();
-        state.expression += "=";
         state.justEvaluated = true;
         state.op            = 0;
     }

@@ -50,7 +50,7 @@ int main() {
             HandleButtonPress(calc, clicked);
         }
         BeginDrawing();
-        ClearBackground(WHITE);
+        ClearBackground(DARKGRAY);
 
         int displayBoxWidth  = screenWidth - 2 * padding;
         int displayBoxX      = padding;
@@ -59,8 +59,8 @@ int main() {
                                 (float)displayBoxHeight};
 
         // Draw display box (single, main background)
-        DrawRectangleRounded(displayBox, 0.1f, 16, LIGHTGRAY);
-        DrawRectangleRoundedLines(displayBox, 0.1f, 16, GRAY);
+        // DrawRectangleRounded(displayBox, 0.1f, 16, LIGHTGRAY);
+        // DrawRectangleRoundedLines(displayBox, 0.1f, 16, GRAY);
 
         // Helper function to truncate string to fit width
         auto TruncateToFit = [&](const std::string& text, float fontSize,
@@ -97,9 +97,9 @@ int main() {
         float dispY = displayBox.y + displayBox.height - dispSize.y - 20;
 
         DrawTextEx(font, exprToDraw.c_str(), {exprX, exprY}, exprFontSize, 0,
-                   DARKGRAY);
+                   WHITE);
         DrawTextEx(font, dispToDraw.c_str(), {dispX, dispY}, dispFontSize, 0,
-                   BLACK);
+                   WHITE);
 
         // Draw buttons
         DrawButtons(buttons, font, mouse);
