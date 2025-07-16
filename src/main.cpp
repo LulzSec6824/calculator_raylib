@@ -9,6 +9,7 @@
 #include "../includes/calculator.h"
 
 int main() {
+    // Window and UI layout setup
     int screenWidth  = 350;
     int screenHeight = 500;
     InitWindow(screenWidth, screenHeight, "Calculator in RAYLIB");
@@ -22,6 +23,7 @@ int main() {
     int buttonSpacing    = 10;
     int displayBoxHeight = 110;
     int bottomPadding    = 10;
+    // Calculate top padding to vertically center the calculator
     int topPadding =
         screenHeight -
         (displayBoxHeight + buttonSpacing + buttonRows * buttonHeight +
@@ -32,12 +34,14 @@ int main() {
     int leftOffset  = padding;
     int btnW        = 75;
 
+    // Calculator state and button setup
     CalculatorState calc;
     std::vector<Button> buttons =
         CreateButtons(btnW, buttonHeight, buttonSpacing, topOffset, leftOffset);
     while (!WindowShouldClose()) {
         Vector2 mouse = GetMousePosition();
         int clicked   = -1;
+        // Detect button click
         if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
             for (auto& btn : buttons) {
                 if (CheckCollisionPointRec(mouse, btn.rect)) {
@@ -46,6 +50,7 @@ int main() {
                 }
             }
         }
+        // Handle button press logic
         if (clicked != -1) {
             HandleButtonPress(calc, clicked);
         }
@@ -57,10 +62,6 @@ int main() {
         Rectangle displayBox = {(float)displayBoxX, (float)displayBoxY,
                                 (float)displayBoxWidth,
                                 (float)displayBoxHeight};
-
-        // Draw display box (single, main background)
-        // DrawRectangleRounded(displayBox, 0.1f, 16, LIGHTGRAY);
-        // DrawRectangleRoundedLines(displayBox, 0.1f, 16, GRAY);
 
         // Helper function to truncate string to fit width
         auto TruncateToFit = [&](const std::string& text, float fontSize,
@@ -101,7 +102,7 @@ int main() {
         DrawTextEx(font, dispToDraw.c_str(), {dispX, dispY}, dispFontSize, 0,
                    WHITE);
 
-        // Draw buttons
+        // Draw calculator buttons
         DrawButtons(buttons, font, mouse);
         EndDrawing();
     }

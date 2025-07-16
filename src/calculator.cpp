@@ -3,6 +3,7 @@
 #include <iomanip>
 #include <sstream>
 
+// Constructor initializes calculator state
 CalculatorState::CalculatorState()
     : display("0"),
       expression(""),
@@ -12,7 +13,9 @@ CalculatorState::CalculatorState()
       enteringSecond(false),
       justEvaluated(false) {}
 
+// Handles all button press events and updates calculator state accordingly
 void HandleButtonPress(CalculatorState& state, int clicked) {
+    // Handle numeric button press
     if (clicked >= '0' && clicked <= '9') {
         if (state.display == "0" || state.justEvaluated) state.display = "";
         if (state.justEvaluated) state.expression = "";
@@ -20,11 +23,26 @@ void HandleButtonPress(CalculatorState& state, int clicked) {
         state.expression += (char)clicked;
         state.justEvaluated = false;
     } else if (clicked == '.') {
+        // Handle decimal point
         if (state.display.find('.') == std::string::npos) {
             state.display += ".";
             state.expression += ".";
         }
-    } else if (clicked == 100 || clicked == 101) {  // CE or C
+    } else if (clicked == 100) {  // CE (Clear Entry)
+        if (state.justEvaluated) {
+            // If we just evaluated, CE acts as C
+            state.expression    = "";
+            state.operand1      = 0;
+            state.op            = 0;
+            state.justEvaluated = false;
+        } else {
+            // Otherwise, just clear the current entry from the expression
+            if (state.expression.size() >= state.display.size()) {
+                state.expression.erase(state.expression.size() - state.display.size());
+            }
+        }
+        state.display = "0";
+    } else if (clicked == 101) {  // C (Clear All)
         state.display       = "0";
         state.expression    = "";
         state.operand1      = 0;
@@ -36,7 +54,7 @@ void HandleButtonPress(CalculatorState& state, int clicked) {
         else
             state.display = "0";
         if (!state.expression.empty()) state.expression.pop_back();
-    } else if (clicked == 103) {  // +/−
+    } else if (clicked == 103) {  // +/− (Toggle sign)
         if (state.display[0] == '-')
             state.display = state.display.substr(1);
         else if (state.display != "0")
@@ -44,6 +62,7 @@ void HandleButtonPress(CalculatorState& state, int clicked) {
         // Expression sign toggle is not appended
     } else if (clicked == '+' || clicked == '-' || clicked == '*' ||
                clicked == '/') {
+        // Handle operator button press
         if (state.justEvaluated) {
             state.expression = state.display;
         }
@@ -53,6 +72,7 @@ void HandleButtonPress(CalculatorState& state, int clicked) {
         state.expression += (char)clicked;
         state.display = "0";
     } else if (clicked == '=') {
+        // Handle equals button press and perform calculation
         state.operand2 = std::stod(state.display);
         double result  = 0;
         bool error     = false;
