@@ -16,10 +16,25 @@ int main() {
     Font font = LoadFontEx("resource/Ubuntu-Regular.ttf", 64, 0, 0);
     SetTextureFilter(font.texture, TEXTURE_FILTER_BILINEAR);
 
+    int padding          = 10;
+    int buttonRows       = 5;
+    int buttonHeight     = 60;
+    int buttonSpacing    = 10;
+    int displayBoxHeight = 110;
+    int bottomPadding    = 10;
+    int topPadding =
+        screenHeight -
+        (displayBoxHeight + buttonSpacing + buttonRows * buttonHeight +
+         (buttonRows - 1) * buttonSpacing) -
+        bottomPadding;
+    int displayBoxY = topPadding;
+    int topOffset   = displayBoxY + displayBoxHeight + buttonSpacing;
+    int leftOffset  = padding;
+    int btnW        = 75;
+
     CalculatorState calc;
-    int btnW = 75, btnH = 60, margin = 10, topOffset = 120, leftOffset = 10;
     std::vector<Button> buttons =
-        CreateButtons(btnW, btnH, margin, topOffset, leftOffset);
+        CreateButtons(btnW, buttonHeight, buttonSpacing, topOffset, leftOffset);
     while (!WindowShouldClose()) {
         Vector2 mouse = GetMousePosition();
         int clicked   = -1;
@@ -35,22 +50,10 @@ int main() {
             HandleButtonPress(calc, clicked);
         }
         BeginDrawing();
-        ClearBackground(RAYWHITE);
+        ClearBackground(WHITE);
 
-        // Define layout variables if not already defined
-        int padding       = 24;
-        int buttonRows    = 5;
-        int buttonHeight  = 64;
-        int buttonSpacing = 12;
-
-        // Calculate display box position and size
         int displayBoxWidth  = screenWidth - 2 * padding;
-        int displayBoxHeight = 110;
         int displayBoxX      = padding;
-        int displayBoxY =
-            (screenHeight - (displayBoxHeight +
-                             (buttonRows * (buttonHeight + buttonSpacing)))) /
-            2;
         Rectangle displayBox = {(float)displayBoxX, (float)displayBoxY,
                                 (float)displayBoxWidth,
                                 (float)displayBoxHeight};

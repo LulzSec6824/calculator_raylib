@@ -32,8 +32,8 @@ void DrawButtons(const std::vector<Button>& buttons, Font font, Vector2 mouse) {
     for (const auto& btn : buttons) {
         Color btnColor =
             CheckCollisionPointRec(mouse, btn.rect) ? SKYBLUE : WHITE;
-        DrawRectangleRec(btn.rect, btnColor);
-        DrawRectangleLinesEx(btn.rect, 2, GRAY);
+        DrawRectangleRounded(btn.rect, 0.2f, 0, btnColor);
+        DrawRectangleRoundedLines(btn.rect, 0.2f, 0, GRAY);
         int fontSize     = 28;
         Vector2 textSize = MeasureTextEx(font, btn.label.c_str(), fontSize, 0);
         DrawTextEx(font, btn.label.c_str(),
