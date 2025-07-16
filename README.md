@@ -1,5 +1,11 @@
 # Raylib Calculator
 
+[![CMake on multiple platforms](https://github.com/LulzSec6824/calculator_raylib/actions/workflows/cmake-multi-platform.yml/badge.svg)](https://github.com/LulzSec6824/calculator_raylib/actions/workflows/cmake-multi-platform.yml)
+[![Latest Release](https://img.shields.io/github/v/release/LulzSec6824/raylib-calculator)](https://github.com/LulzSec6824/calculator_raylib/releases)
+[![License: GPL v2](https://img.shields.io/badge/License-GPL_v2-blue.svg)](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html)
+
+A simple, modern, and cross-platform calculator built with C++ and the Raylib library. This project showcases a clean user interface, immediate feedback, and a responsive design that adapts to window resizing. It supports basic arithmetic operations, handles errors gracefully, and is structured for easy extension and maintenance.
+
 A modern calculator application built with C++ and [raylib](https://www.raylib.com/), featuring a Windows-style UI with rounded buttons, dark gray background, antialiased fonts, mouse input, and a responsive dual-display system for expressions and results.
 
 ## Features
