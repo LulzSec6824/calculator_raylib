@@ -1,7 +1,7 @@
 /build
 /.vscode
 /release.md
-/.env
+.env
 /.idea
 /out
 /.vs
