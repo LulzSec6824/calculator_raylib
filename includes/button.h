@@ -12,4 +12,5 @@ struct Button {
 
 std::vector<Button> CreateButtons(int btnW, int btnH, int margin, int topOffset,
                                   int leftOffset);
-void DrawButtons(const std::vector<Button>& buttons, Font font, Vector2 mouse);
+void DrawButtons(const std::vector<Button>& buttons, const Font& font,
+                 Vector2 mouse);

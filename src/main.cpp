@@ -1,7 +1,6 @@
 #include <raylib.h>
 
 #include <iomanip>
-#include <sstream>
 #include <string>
 #include <vector>
 
@@ -59,9 +58,10 @@ int main() {
 
         int displayBoxWidth  = screenWidth - 2 * padding;
         int displayBoxX      = padding;
-        Rectangle displayBox = {(float)displayBoxX, (float)displayBoxY,
-                                (float)displayBoxWidth,
-                                (float)displayBoxHeight};
+        Rectangle displayBox = {static_cast<float>(displayBoxX),
+                                static_cast<float>(displayBoxY),
+                                static_cast<float>(displayBoxWidth),
+                                static_cast<float>(displayBoxHeight)};
 
         // Helper function to truncate string to fit width
         auto TruncateToFit = [&](const std::string& text, float fontSize,

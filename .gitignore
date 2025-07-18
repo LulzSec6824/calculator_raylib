@@ -2,3 +2,6 @@
 /.vscode
 /release.md
 /.env
+/.idea
+/out
+/.vs

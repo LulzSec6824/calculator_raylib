@@ -5,7 +5,8 @@
 #include <string>
 #include <vector>
 
-// Creates and returns a vector of Button objects arranged in a calculator layout
+// Creates and returns a vector of Button objects arranged in a calculator
+// layout
 std::vector<Button> CreateButtons(int btnW, int btnH, int margin, int topOffset,
                                   int leftOffset) {
     // Define button labels and their corresponding IDs in a grid layout
@@ -21,9 +22,9 @@ std::vector<Button> CreateButtons(int btnW, int btnH, int margin, int topOffset,
         for (int col = 0; col < layout[row].size(); ++col) {
             Button btn;
             // Set button position and size
-            btn.rect  = {(float)(leftOffset + col * (btnW + margin)),
-                         (float)(topOffset + row * (btnH + margin)), (float)btnW,
-                         (float)btnH};
+            btn.rect  = {static_cast<float>(leftOffset + col * (btnW + margin)),
+                         static_cast<float>(topOffset + row * (btnH + margin)),
+                         static_cast<float>(btnW), static_cast<float>(btnH)};
             btn.label = layout[row][col].first;
             btn.id    = layout[row][col].second;
             buttons.push_back(btn);
@@ -33,7 +34,8 @@ std::vector<Button> CreateButtons(int btnW, int btnH, int margin, int topOffset,
 }
 
 // Draws all calculator buttons and highlights the one under the mouse cursor
-void DrawButtons(const std::vector<Button>& buttons, Font font, Vector2 mouse) {
+void DrawButtons(const std::vector<Button>& buttons, const Font& font,
+                 Vector2 mouse) {
     for (const auto& btn : buttons) {
         // Highlight button if mouse is hovering
         Color btnColor =

@@ -19,8 +19,8 @@ void HandleButtonPress(CalculatorState& state, int clicked) {
     if (clicked >= '0' && clicked <= '9') {
         if (state.display == "0" || state.justEvaluated) state.display = "";
         if (state.justEvaluated) state.expression = "";
-        state.display += (char)clicked;
-        state.expression += (char)clicked;
+        state.display += static_cast<char>(clicked);
+        state.expression += static_cast<char>(clicked);
         state.justEvaluated = false;
     } else if (clicked == '.') {
         // Handle decimal point
@@ -38,7 +38,8 @@ void HandleButtonPress(CalculatorState& state, int clicked) {
         } else {
             // Otherwise, just clear the current entry from the expression
             if (state.expression.size() >= state.display.size()) {
-                state.expression.erase(state.expression.size() - state.display.size());
+                state.expression.erase(state.expression.size() -
+                                       state.display.size());
             }
         }
         state.display = "0";
@@ -67,9 +68,9 @@ void HandleButtonPress(CalculatorState& state, int clicked) {
             state.expression = state.display;
         }
         state.operand1      = std::stod(state.display);
-        state.op            = (char)clicked;
+        state.op            = static_cast<char>(clicked);
         state.justEvaluated = false;
-        state.expression += (char)clicked;
+        state.expression += static_cast<char>(clicked);
         state.display = "0";
     } else if (clicked == '=') {
         // Handle equals button press and perform calculation
