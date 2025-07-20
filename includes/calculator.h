@@ -9,6 +9,7 @@ struct CalculatorState {
     char op;
     bool enteringSecond;
     bool justEvaluated;
+    bool isDarkMode;
     CalculatorState();
 };
 

@@ -11,7 +11,8 @@ CalculatorState::CalculatorState()
       operand2(0),
       op(0),
       enteringSecond(false),
-      justEvaluated(false) {}
+      justEvaluated(false),
+      isDarkMode(false) {}
 
 // Handles all button press events and updates calculator state accordingly
 void HandleButtonPress(CalculatorState& state, int clicked) {
@@ -29,20 +30,8 @@ void HandleButtonPress(CalculatorState& state, int clicked) {
             state.expression += ".";
         }
     } else if (clicked == 100) {  // CE (Clear Entry)
-        if (state.justEvaluated) {
-            // If we just evaluated, CE acts as C
-            state.expression    = "";
-            state.operand1      = 0;
-            state.op            = 0;
-            state.justEvaluated = false;
-        } else {
-            // Otherwise, just clear the current entry from the expression
-            if (state.expression.size() >= state.display.size()) {
-                state.expression.erase(state.expression.size() -
-                                       state.display.size());
-            }
-        }
-        state.display = "0";
+        state.isDarkMode = !state.isDarkMode;
+
     } else if (clicked == 101) {  // C (Clear All)
         state.display       = "0";
         state.expression    = "";

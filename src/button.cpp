@@ -8,10 +8,10 @@
 // Creates and returns a vector of Button objects arranged in a calculator
 // layout
 std::vector<Button> CreateButtons(int btnW, int btnH, int margin, int topOffset,
-                                  int leftOffset) {
+                                  int leftOffset, const Font& font) {
     // Define button labels and their corresponding IDs in a grid layout
     std::vector<std::vector<std::pair<std::string, int>>> layout = {
-        {{"CE", 100}, {"C", 101}, {"<-", 102}, {"/", '/'}},
+        {{"T", 100}, {"C", 101}, {"<-", 102}, {"/", '/'}},
         {{"7", '7'}, {"8", '8'}, {"9", '9'}, {"*", '*'}},
         {{"4", '4'}, {"5", '5'}, {"6", '6'}, {"-", '-'}},
         {{"1", '1'}, {"2", '2'}, {"3", '3'}, {"+", '+'}},
@@ -27,6 +27,10 @@ std::vector<Button> CreateButtons(int btnW, int btnH, int margin, int topOffset,
                          static_cast<float>(btnW), static_cast<float>(btnH)};
             btn.label = layout[row][col].first;
             btn.id    = layout[row][col].second;
+            btn.texture  = nullptr;  // Initialize texture pointer to nullptr
+            btn.fontSize = 28;
+            btn.labelSize =
+                MeasureTextEx(font, btn.label.c_str(), btn.fontSize, 0);
             buttons.push_back(btn);
         }
     }
@@ -35,19 +39,39 @@ std::vector<Button> CreateButtons(int btnW, int btnH, int margin, int topOffset,
 
 // Draws all calculator buttons and highlights the one under the mouse cursor
 void DrawButtons(const std::vector<Button>& buttons, const Font& font,
-                 Vector2 mouse) {
+                 Vector2 mouse, const bool isDarkMode) {
     for (const auto& btn : buttons) {
-        // Highlight button if mouse is hovering
+        // Determine button color based on hover state
         Color btnColor =
             CheckCollisionPointRec(mouse, btn.rect) ? SKYBLUE : WHITE;
+
         DrawRectangleRounded(btn.rect, 0.2f, 0, btnColor);
         DrawRectangleRoundedLines(btn.rect, 0.2f, 0, GRAY);
-        int fontSize     = 28;
-        Vector2 textSize = MeasureTextEx(font, btn.label.c_str(), fontSize, 0);
-        // Center the button label
-        DrawTextEx(font, btn.label.c_str(),
-                   {btn.rect.x + (btn.rect.width - textSize.x) / 2,
-                    btn.rect.y + (btn.rect.height - textSize.y) / 2},
-                   fontSize, 0, BLACK);
+
+        // If button has a texture, draw it instead of text
+        if (btn.texture != nullptr) {
+            // Calculate scaling to fit the texture within the button while
+            // maintaining aspect ratio
+            float scale = fmin((btn.rect.width - 10) / btn.texture->width,
+                               (btn.rect.height - 10) / btn.texture->height);
+
+            // Calculate position to center the texture in the button
+            float textureWidth  = btn.texture->width * scale;
+            float textureHeight = btn.texture->height * scale;
+            Vector2 texturePos  = {
+                btn.rect.x + (btn.rect.width - textureWidth) / 2,
+                btn.rect.y + (btn.rect.height - textureHeight) / 2};
+
+            // Draw the texture with appropriate tint based on dark mode
+            Color tintColor = isDarkMode ? DARKGRAY : WHITE;
+            DrawTextureEx(*btn.texture, texturePos, 0.0f, scale, tintColor);
+        } else {
+            // Draw text label for buttons without texture, using pre-calculated
+            // size
+            DrawTextEx(font, btn.label.c_str(),
+                       {btn.rect.x + (btn.rect.width - btn.labelSize.x) / 2,
+                        btn.rect.y + (btn.rect.height - btn.labelSize.y) / 2},
+                       btn.fontSize, 0, BLACK);
+        }
     }
 }

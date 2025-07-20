@@ -7,6 +7,11 @@
 #include "../includes/button.h"
 #include "../includes/calculator.h"
 
+struct BgColor {
+    Color white    = {255, 255, 255, 255};
+    Color darkGray = {50, 50, 50, 255};
+};
+
 int main() {
     // Window and UI layout setup
     int screenWidth  = 350;
@@ -35,8 +40,25 @@ int main() {
 
     // Calculator state and button setup
     CalculatorState calc;
-    std::vector<Button> buttons =
-        CreateButtons(btnW, buttonHeight, buttonSpacing, topOffset, leftOffset);
+    std::vector<Button> buttons = CreateButtons(
+        btnW, buttonHeight, buttonSpacing, topOffset, leftOffset, font);
+
+    // Update the CE button (ID 100) label to 'T'
+    for (auto& btn : buttons) {
+        if (btn.id == 100) {  // CE button
+            btn.label = "T";
+            break;
+        }
+    }
+    // These values are constant, so they can be calculated once outside the
+    // loop
+    const int displayBoxWidth  = screenWidth - 2 * padding;
+    const int displayBoxX      = padding;
+    const Rectangle displayBox = {static_cast<float>(displayBoxX),
+                                  static_cast<float>(displayBoxY),
+                                  static_cast<float>(displayBoxWidth),
+                                  static_cast<float>(displayBoxHeight)};
+
     while (!WindowShouldClose()) {
         Vector2 mouse = GetMousePosition();
         int clicked   = -1;
@@ -54,23 +76,19 @@ int main() {
             HandleButtonPress(calc, clicked);
         }
         BeginDrawing();
-        ClearBackground(DARKGRAY);
+        ClearBackground(calc.isDarkMode ? BgColor().white : BgColor().darkGray);
 
-        int displayBoxWidth  = screenWidth - 2 * padding;
-        int displayBoxX      = padding;
-        Rectangle displayBox = {static_cast<float>(displayBoxX),
-                                static_cast<float>(displayBoxY),
-                                static_cast<float>(displayBoxWidth),
-                                static_cast<float>(displayBoxHeight)};
+        // Draw display box with theme-appropriate color
+        DrawRectangleRec(displayBox, calc.isDarkMode ? LIGHTGRAY : DARKGRAY);
 
         // Helper function to truncate string to fit width
         auto TruncateToFit = [&](const std::string& text, float fontSize,
                                  float maxWidth) {
             std::string result = text;
-            while (MeasureTextEx(font, result.c_str(), fontSize, 0).x >
-                       maxWidth &&
-                   result.length() > 1) {
+            Vector2 size = MeasureTextEx(font, result.c_str(), fontSize, 0);
+            while (size.x > maxWidth && result.length() > 1) {
                 result.erase(0, 1);
+                size = MeasureTextEx(font, result.c_str(), fontSize, 0);
             }
             if (result != text && result.length() > 1) {
                 result[0] = '.';
@@ -97,15 +115,17 @@ int main() {
         float dispX = displayBox.x + displayBox.width - dispSize.x - 20;
         float dispY = displayBox.y + displayBox.height - dispSize.y - 20;
 
+        Color textColor = calc.isDarkMode ? BLACK : WHITE;
         DrawTextEx(font, exprToDraw.c_str(), {exprX, exprY}, exprFontSize, 0,
-                   WHITE);
+                   textColor);
         DrawTextEx(font, dispToDraw.c_str(), {dispX, dispY}, dispFontSize, 0,
-                   WHITE);
+                   textColor);
 
         // Draw calculator buttons
-        DrawButtons(buttons, font, mouse);
+        DrawButtons(buttons, font, mouse, calc.isDarkMode);
         EndDrawing();
     }
+    // Unload resources
     UnloadFont(font);
     CloseWindow();
     return 0;
