@@ -8,16 +8,28 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+# Set Releasebuild profiles
+
+if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    # Clang specific flags
+    set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG")
+elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
+    # GCC specific flags
+    set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG")
+elseif(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
+    # MSVC specific flags
+    set(CMAKE_CXX_FLAGS_RELEASE "/O2 /Ob2 /D NDEBUG")
+endif()
+
 add_executable(${PROJECT_NAME})
 target_sources(${PROJECT_NAME}
     PRIVATE
        src/main.cpp
        src/calculator.cpp
        src/button.cpp
-       includes/button.h
-       includes/calculator.h
-       
 )
+
+target_include_directories(${PROJECT_NAME} PRIVATE includes)
 
 target_link_libraries(${PROJECT_NAME}
     PRIVATE

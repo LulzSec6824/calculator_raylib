@@ -29,7 +29,7 @@ void HandleButtonPress(CalculatorState& state, int clicked) {
             state.display += ".";
             state.expression += ".";
         }
-    } else if (clicked == 100) {  // CE (Clear Entry)
+    } else if (clicked == 100) {  // T button toggles dark mode
         state.isDarkMode = !state.isDarkMode;
 
     } else if (clicked == 101) {  // C (Clear All)
