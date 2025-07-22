@@ -14,19 +14,19 @@ struct BgColor {
 
 int main() {
     // Window and UI layout setup
-    int screenWidth  = 350;
-    int screenHeight = 500;
+    int screenWidth  = 420;
+    int screenHeight = 750;
     InitWindow(screenWidth, screenHeight, "Calculator in RAYLIB");
     SetTargetFPS(60);
     Font font = LoadFontEx("resource/Ubuntu-Regular.ttf", 64, 0, 0);
     SetTextureFilter(font.texture, TEXTURE_FILTER_BILINEAR);
 
     int padding          = 10;
-    int buttonRows       = 5;
-    int buttonHeight     = 60;
-    int buttonSpacing    = 10;
-    int displayBoxHeight = 110;
-    int bottomPadding    = 10;
+    int buttonRows       = 8;
+    int buttonHeight     = 45;
+    int buttonSpacing    = 15;
+    int displayBoxHeight = 150;
+    int bottomPadding    = 15;
     // Calculate top padding to vertically center the calculator
     int topPadding =
         screenHeight -
@@ -36,20 +36,13 @@ int main() {
     int displayBoxY = topPadding;
     int topOffset   = displayBoxY + displayBoxHeight + buttonSpacing;
     int leftOffset  = padding;
-    int btnW        = 75;
+    int btnW        = 60;
 
     // Calculator state and button setup
     CalculatorState calc;
     std::vector<Button> buttons = CreateButtons(
         btnW, buttonHeight, buttonSpacing, topOffset, leftOffset, font);
 
-    // Update the CE button (ID 100) label to 'T'
-    for (auto& btn : buttons) {
-        if (btn.id == 100) {  // CE button
-            btn.label = "T";
-            break;
-        }
-    }
     // These values are constant, so they can be calculated once outside the
     // loop
     const int displayBoxWidth  = screenWidth - 2 * padding;
@@ -97,8 +90,8 @@ int main() {
         };
 
         // Calculate text sizes for alignment
-        float exprFontSize = 32.0f;
-        float dispFontSize = 48.0f;
+        float exprFontSize = 36.0f;
+        float dispFontSize = 54.0f;
         float maxTextWidth = displayBox.width - 40;
         std::string exprToDraw =
             TruncateToFit(calc.expression, exprFontSize, maxTextWidth);

@@ -11,11 +11,18 @@ std::vector<Button> CreateButtons(int btnW, int btnH, int margin, int topOffset,
                                   int leftOffset, const Font& font) {
     // Define button labels and their corresponding IDs in a grid layout
     std::vector<std::vector<std::pair<std::string, int>>> layout = {
-        {{"T", 100}, {"C", 101}, {"<-", 102}, {"/", '/'}},
-        {{"7", '7'}, {"8", '8'}, {"9", '9'}, {"*", '*'}},
-        {{"4", '4'}, {"5", '5'}, {"6", '6'}, {"-", '-'}},
-        {{"1", '1'}, {"2", '2'}, {"3", '3'}, {"+", '+'}},
-        {{"+/-", 103}, {"0", '0'}, {".", '.'}, {"=", '='}}};
+        {{"SHIFT", 200}, {"MODE", 201}, {"ON", 202}, {"DEL", 203}, {"AC", 204}},
+        {{"sin", 110}, {"cos", 111}, {"tan", 112}, {"log", 113}, {"ln", 114}},
+        {{"exp", 115}, {"sqrt", 116}, {"x^y", '^'}, {"(", '('}, {")", ')'}},
+        {{"7", '7'}, {"8", '8'}, {"9", '9'}, {"/", '/'}, {"*", '*'}},
+        {{"4", '4'}, {"5", '5'}, {"6", '6'}, {"-", '-'}, {"+", '+'}},
+        {{"1", '1'}, {"2", '2'}, {"3", '3'}, {"0", '0'}, {".", '.'}},
+        {{"+/-", 103}, {"ANS", 205}, {"=", '='}, {"T", 100}, {"C", 101}},
+        {{"<-", 102},
+         {"hyp", 117},
+         {"asin", 118},
+         {"acos", 119},
+         {"atan", 120}}};
 
     std::vector<Button> buttons;
     for (int row = 0; row < layout.size(); ++row) {
@@ -28,7 +35,7 @@ std::vector<Button> CreateButtons(int btnW, int btnH, int margin, int topOffset,
             btn.label = layout[row][col].first;
             btn.id    = layout[row][col].second;
             btn.texture  = nullptr;  // Initialize texture pointer to nullptr
-            btn.fontSize = 28;
+            btn.fontSize = 18;
             btn.labelSize =
                 MeasureTextEx(font, btn.label.c_str(), btn.fontSize, 0);
             buttons.push_back(btn);
