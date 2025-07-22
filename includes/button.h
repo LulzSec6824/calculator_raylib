@@ -1,6 +1,7 @@
 #pragma once
 #include <raylib.h>
 
+#include <cmath>
 #include <string>
 #include <vector>
 
