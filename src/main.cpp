@@ -15,28 +15,36 @@ struct BgColor {
 int main() {
     // Window and UI layout setup
     int screenWidth  = 420;
-    int screenHeight = 750;
+    int screenHeight = 580;
     InitWindow(screenWidth, screenHeight, "Calculator in RAYLIB");
     SetTargetFPS(60);
     Font font = LoadFontEx("resource/Ubuntu-Regular.ttf", 64, 0, 0);
     SetTextureFilter(font.texture, TEXTURE_FILTER_BILINEAR);
 
-    int padding          = 10;
-    int buttonRows       = 8;
+    // UI layout parameters
+    int padding          = 20;
+    int buttonRows       = 6;
     int buttonHeight     = 45;
     int buttonSpacing    = 15;
     int displayBoxHeight = 150;
     int bottomPadding    = 15;
-    // Calculate top padding to vertically center the calculator
-    int topPadding =
-        screenHeight -
-        (displayBoxHeight + buttonSpacing + buttonRows * buttonHeight +
-         (buttonRows - 1) * buttonSpacing) -
-        bottomPadding;
+
+    // Calculate total calculator height
+    int calculatorHeight = displayBoxHeight + buttonSpacing +
+                           buttonRows * buttonHeight +
+                           (buttonRows - 1) * buttonSpacing;
+
+    // Calculate top padding to center the calculator vertically
+    int topPadding = (screenHeight - calculatorHeight - bottomPadding) / 2;
+    topPadding = topPadding > 0 ? topPadding : 15;  // Ensure minimum padding
+
     int displayBoxY = topPadding;
     int topOffset   = displayBoxY + displayBoxHeight + buttonSpacing;
-    int leftOffset  = padding;
-    int btnW        = 60;
+
+    int btnW             = 65;
+    int totalButtonWidth = 5 * btnW + 4 * buttonSpacing;
+    int leftOffset       = (screenWidth - totalButtonWidth) / 2;
+    int rightOffset      = leftOffset;
 
     // Calculator state and button setup
     CalculatorState calc;
@@ -103,10 +111,13 @@ int main() {
             MeasureTextEx(font, dispToDraw.c_str(), dispFontSize, 0);
 
         // Right-align expression and display text within the display box
-        float exprX = displayBox.x + displayBox.width - exprSize.x - 20;
-        float exprY = displayBox.y + 10;
-        float dispX = displayBox.x + displayBox.width - dispSize.x - 20;
-        float dispY = displayBox.y + displayBox.height - dispSize.y - 20;
+        float exprX = displayBox.x + displayBox.width - exprSize.x -
+                      30;                 // Increase right margin
+        float exprY = displayBox.y + 20;  // Increase top margin
+        float dispX = displayBox.x + displayBox.width - dispSize.x -
+                      30;  // Increase right margin
+        float dispY = displayBox.y + displayBox.height - dispSize.y -
+                      30;  // Increase bottom margin
 
         Color textColor = calc.isDarkMode ? BLACK : WHITE;
         DrawTextEx(font, exprToDraw.c_str(), {exprX, exprY}, exprFontSize, 0,
