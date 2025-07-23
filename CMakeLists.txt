@@ -27,6 +27,7 @@ target_sources(${PROJECT_NAME}
        src/main.cpp
        src/calculator.cpp
        src/button.cpp
+       src/parser.cpp
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE includes)

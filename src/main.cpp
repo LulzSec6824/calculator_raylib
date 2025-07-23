@@ -6,6 +6,7 @@
 
 #include "../includes/button.h"
 #include "../includes/calculator.h"
+#include "../includes/parser.h"
 
 struct BgColor {
     Color white    = {255, 255, 255, 255};
@@ -17,7 +18,8 @@ int main() {
     const int buttonRows       = 6;
     const int buttonHeight     = 45;
     const int buttonSpacing    = 15;
-    const int displayBoxHeight = 150;
+    const int sidePadding      = buttonSpacing / 2;
+    const int displayBoxHeight = 200;
     const int btnW             = 65;
 
     // Calculate total calculator width and height
@@ -27,7 +29,7 @@ int main() {
                                  (buttonRows - 1) * buttonSpacing;
 
     // Window and UI layout setup
-    const int screenWidth  = calculatorWidth + 2 * buttonSpacing;
+    const int screenWidth  = calculatorWidth + 2 * sidePadding;
     const int screenHeight = calculatorHeight + 2 * buttonSpacing;
     InitWindow(screenWidth, screenHeight, "Calculator in RAYLIB");
     SetTargetFPS(60);
@@ -36,7 +38,7 @@ int main() {
 
     // Calculate offsets
     const int topPadding = buttonSpacing;
-    const int leftOffset = buttonSpacing;
+    const int leftOffset = sidePadding;
 
     const int displayBoxY = topPadding;
     const int topOffset   = displayBoxY + displayBoxHeight + buttonSpacing;
@@ -106,17 +108,17 @@ int main() {
             MeasureTextEx(font, dispToDraw.c_str(), dispFontSize, 0);
 
         // Right-align expression and display text within the display box
-        float exprX = displayBox.x + displayBox.width - exprSize.x -
-                      30;                 // Increase right margin
-        float exprY = displayBox.y + 20;  // Increase top margin
-        float dispX = displayBox.x + displayBox.width - dispSize.x -
-                      30;  // Increase right margin
-        float dispY = displayBox.y + displayBox.height - dispSize.y -
-                      30;  // Increase bottom margin
-
         Color textColor = calc.isDarkMode ? BLACK : WHITE;
-        DrawTextEx(font, exprToDraw.c_str(), {exprX, exprY}, exprFontSize, 0,
-                   textColor);
+
+        float yPos = displayBox.y + 10;
+        for (const auto& entry : calc.history) {
+            DrawTextEx(font, entry.c_str(), {displayBox.x + 10, yPos}, 20, 0,
+                       GRAY);
+            yPos += 25;
+        }
+
+        float dispX = displayBox.x + displayBox.width - dispSize.x - 30;
+        float dispY = displayBox.y + displayBox.height - dispSize.y - 30;
         DrawTextEx(font, dispToDraw.c_str(), {dispX, dispY}, dispFontSize, 0,
                    textColor);
 

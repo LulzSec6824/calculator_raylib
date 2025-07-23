@@ -127,12 +127,19 @@ void HandleButtonPress(CalculatorState& state, int clicked) {
                 double result = parser.evaluate(state.expression);
                 std::ostringstream oss;
                 oss << std::fixed << std::setprecision(10) << result;
-                state.display = oss.str();
-                state.display.erase(state.display.find_last_not_of('0') + 1,
-                                    std::string::npos);
-                if (!state.display.empty() && state.display.back() == '.')
-                    state.display.pop_back();
-                state.expression    = state.display;
+                std::string resultStr = oss.str();
+                resultStr.erase(resultStr.find_last_not_of('0') + 1,
+                                std::string::npos);
+                if (!resultStr.empty() && resultStr.back() == '.')
+                    resultStr.pop_back();
+
+                if (state.history.size() >= 2) {
+                    state.history.erase(state.history.begin());
+                }
+                state.history.push_back(state.expression + " = " + resultStr);
+
+                state.display       = resultStr;
+                state.expression    = resultStr;
                 state.justEvaluated = true;
             } catch (...) {
                 state.display = "Error";
@@ -144,7 +151,11 @@ void HandleButtonPress(CalculatorState& state, int clicked) {
         if (isFunction) {
             state.display = "";
         } else {
-            state.display += append;
+            if (state.display == "0") {
+                state.display = append;
+            } else {
+                state.display += append;
+            }
         }
         state.justEvaluated = false;
     }
