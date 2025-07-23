@@ -13,38 +13,33 @@ struct BgColor {
 };
 
 int main() {
+    // UI layout parameters
+    const int buttonRows       = 6;
+    const int buttonHeight     = 45;
+    const int buttonSpacing    = 15;
+    const int displayBoxHeight = 150;
+    const int btnW             = 65;
+
+    // Calculate total calculator width and height
+    const int calculatorWidth  = 5 * btnW + 4 * buttonSpacing;
+    const int calculatorHeight = displayBoxHeight + buttonSpacing +
+                                 buttonRows * buttonHeight +
+                                 (buttonRows - 1) * buttonSpacing;
+
     // Window and UI layout setup
-    int screenWidth  = 420;
-    int screenHeight = 580;
+    const int screenWidth  = calculatorWidth + 2 * buttonSpacing;
+    const int screenHeight = calculatorHeight + 2 * buttonSpacing;
     InitWindow(screenWidth, screenHeight, "Calculator in RAYLIB");
     SetTargetFPS(60);
     Font font = LoadFontEx("resource/Ubuntu-Regular.ttf", 64, 0, 0);
     SetTextureFilter(font.texture, TEXTURE_FILTER_BILINEAR);
 
-    // UI layout parameters
-    int padding          = 20;
-    int buttonRows       = 6;
-    int buttonHeight     = 45;
-    int buttonSpacing    = 15;
-    int displayBoxHeight = 150;
-    int bottomPadding    = 15;
+    // Calculate offsets
+    const int topPadding = buttonSpacing;
+    const int leftOffset = buttonSpacing;
 
-    // Calculate total calculator height
-    int calculatorHeight = displayBoxHeight + buttonSpacing +
-                           buttonRows * buttonHeight +
-                           (buttonRows - 1) * buttonSpacing;
-
-    // Calculate top padding to center the calculator vertically
-    int topPadding = (screenHeight - calculatorHeight - bottomPadding) / 2;
-    topPadding = topPadding > 0 ? topPadding : 15;  // Ensure minimum padding
-
-    int displayBoxY = topPadding;
-    int topOffset   = displayBoxY + displayBoxHeight + buttonSpacing;
-
-    int btnW             = 65;
-    int totalButtonWidth = 5 * btnW + 4 * buttonSpacing;
-    int leftOffset       = (screenWidth - totalButtonWidth) / 2;
-    int rightOffset      = leftOffset;
+    const int displayBoxY = topPadding;
+    const int topOffset   = displayBoxY + displayBoxHeight + buttonSpacing;
 
     // Calculator state and button setup
     CalculatorState calc;
@@ -53,8 +48,8 @@ int main() {
 
     // These values are constant, so they can be calculated once outside the
     // loop
-    const int displayBoxWidth  = screenWidth - 2 * padding;
-    const int displayBoxX      = padding;
+    const int displayBoxWidth  = calculatorWidth;
+    const int displayBoxX      = leftOffset;
     const Rectangle displayBox = {static_cast<float>(displayBoxX),
                                   static_cast<float>(displayBoxY),
                                   static_cast<float>(displayBoxWidth),
