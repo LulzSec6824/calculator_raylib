@@ -4,11 +4,11 @@ name: CMake on multiple platforms
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "scientific", "main" ]
     tags:
       - 'v*'
   pull_request:
-    branches: [ "main" ]
+    branches: [ "scientific", "main" ]
 
 jobs:
   build:
@@ -96,4 +96,3 @@ jobs:
       with:
         name: ${{ matrix.os }}-${{ matrix.c_compiler }}-artifact
         path: ${{ matrix.os }}-${{ matrix.c_compiler }}-raylib-calculator.zip
-
