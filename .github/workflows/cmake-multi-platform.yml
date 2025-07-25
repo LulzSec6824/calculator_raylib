@@ -4,11 +4,11 @@ name: CMake on multiple platforms
 
 on:
   push:
-    branches: [ "scientific" ]
+    branches: [ "scientific", "main" ]
     tags:
       - 'v*'
   pull_request:
-    branches: [ "scientific" ]
+    branches: [ "scientific", "main" ]
 
 jobs:
   build:
