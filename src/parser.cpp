@@ -2,6 +2,9 @@
 
 #include <cmath>
 #include <stdexcept>
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
 
 double MathParser::evaluate(const std::string& expression) {
     auto tokens = tokenize(expression);
@@ -12,23 +15,47 @@ double MathParser::evaluate(const std::string& expression) {
 std::vector<std::string> MathParser::tokenize(const std::string& expr) {
     std::vector<std::string> tokens;
     std::string token;
-    for (char c : expr) {
-        if (std::isspace(c)) continue;
-        if (std::isdigit(c) || c == '.') {
-            token += c;
-        } else {
-            if (!token.empty()) {
-                tokens.push_back(token);
-                token.clear();
-            }
-            if (std::string("+-*/^()").find(c) != std::string::npos) {
-                tokens.push_back(std::string(1, c));
-            } else {
-                token += c;
-            }
+    size_t i = 0;
+
+    while (i < expr.length()) {
+        if (std::isspace(expr[i])) {
+            i++;
+            continue;
         }
+
+        // Check for function names
+        if (std::isalpha(expr[i])) {
+            std::string func;
+            while (i < expr.length() && std::isalpha(expr[i])) {
+                func += expr[i];
+                i++;
+            }
+            tokens.push_back(func);
+            continue;
+        }
+
+        // Check for numbers (including decimals)
+        if (std::isdigit(expr[i]) || expr[i] == '.') {
+            std::string num;
+            while (i < expr.length() &&
+                   (std::isdigit(expr[i]) || expr[i] == '.')) {
+                num += expr[i];
+                i++;
+            }
+            tokens.push_back(num);
+            continue;
+        }
+
+        // Single character operators and parentheses
+        if (std::string("+-*/^()").find(expr[i]) != std::string::npos) {
+            tokens.push_back(std::string(1, expr[i]));
+            i++;
+            continue;
+        }
+
+        i++;
     }
-    if (!token.empty()) tokens.push_back(token);
+
     return tokens;
 }
 
@@ -75,16 +102,25 @@ double MathParser::computeRPN(const std::vector<std::string>& rpn) {
         if (isNumber(token)) {
             stack.push(std::stod(token));
         } else if (isOperator(token)) {
+            if (stack.size() < 2) {
+                throw std::runtime_error("Invalid expression");
+            }
             double b = stack.top();
             stack.pop();
             double a = stack.top();
             stack.pop();
             stack.push(applyOperator(a, b, token));
         } else if (isFunction(token)) {
+            if (stack.empty()) {
+                throw std::runtime_error("Invalid function call");
+            }
             double a = stack.top();
             stack.pop();
             stack.push(applyFunction(a, token));
         }
+    }
+    if (stack.empty()) {
+        throw std::runtime_error("Empty expression");
     }
     return stack.top();
 }
@@ -122,16 +158,22 @@ double MathParser::applyOperator(double a, double b, const std::string& op) {
 }
 
 double MathParser::applyFunction(double a, const std::string& func) {
-    if (func == "sin") return std::sin(a);
-    if (func == "cos") return std::cos(a);
-    if (func == "tan") return std::tan(a);
+    if (func == "sin")
+        return std::sin(a * M_PI / 180.0);  // Convert degrees to radians
+    if (func == "cos")
+        return std::cos(a * M_PI / 180.0);  // Convert degrees to radians
+    if (func == "tan")
+        return std::tan(a * M_PI / 180.0);  // Convert degrees to radians
     if (func == "log") return std::log10(a);
     if (func == "ln") return std::log(a);
     if (func == "exp") return std::exp(a);
     if (func == "sqrt") return std::sqrt(a);
-    if (func == "asin") return std::asin(a);
-    if (func == "acos") return std::acos(a);
-    if (func == "atan") return std::atan(a);
+    if (func == "asin")
+        return std::asin(a) * 180.0 / M_PI;  // Convert radians to degrees
+    if (func == "acos")
+        return std::acos(a) * 180.0 / M_PI;  // Convert radians to degrees
+    if (func == "atan")
+        return std::atan(a) * 180.0 / M_PI;  // Convert radians to degrees
     if (func == "hyp") return std::hypot(a, a);
     throw std::runtime_error("Unknown function");
 }

@@ -11,6 +11,7 @@ CalculatorState::CalculatorState()
       expression(""),
       operand1(0),
       operand2(0),
+      lastResult(0),
       op(0),
       enteringSecond(false),
       justEvaluated(false),
@@ -120,9 +121,32 @@ void HandleButtonPress(CalculatorState& state, int clicked) {
             append     = "atan(";
             isFunction = true;
             break;
+        case 205:  // ANS button
+            {
+                std::ostringstream oss;
+                oss << std::fixed << std::setprecision(10) << state.lastResult;
+                std::string ansStr = oss.str();
+                ansStr.erase(ansStr.find_last_not_of('0') + 1, std::string::npos);
+                if (!ansStr.empty() && ansStr.back() == '.')
+                    ansStr.pop_back();
+                
+                state.expression += ansStr;
+                if (state.display == "0") {
+                    state.display = ansStr;
+                } else {
+                    state.display += ansStr;
+                }
+                state.justEvaluated = false;
+            }
+            return;
         // Add more for other buttons if needed
         case '=':
             try {
+                if (state.expression.empty()) {
+                    state.display = "0";
+                    return;
+                }
+
                 MathParser parser;
                 double result = parser.evaluate(state.expression);
                 std::ostringstream oss;
@@ -140,16 +164,18 @@ void HandleButtonPress(CalculatorState& state, int clicked) {
 
                 state.display       = resultStr;
                 state.expression    = resultStr;
+                state.lastResult    = result;
                 state.justEvaluated = true;
             } catch (...) {
-                state.display = "Error";
+                state.display    = "Error";
+                state.expression = "";
             }
             return;
     }
     if (!append.empty()) {
         state.expression += append;
         if (isFunction) {
-            state.display = "";
+            state.display = append;
         } else {
             if (state.display == "0") {
                 state.display = append;

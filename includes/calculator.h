@@ -8,6 +8,7 @@ struct CalculatorState {
     std::vector<std::string> history;
     double operand1;
     double operand2;
+    double lastResult;
     char op;
     bool enteringSecond;
     bool justEvaluated;
