@@ -57,21 +57,37 @@ int main() {
                                   static_cast<float>(displayBoxWidth),
                                   static_cast<float>(displayBoxHeight)};
 
+    // Pre-calculate maximum text width for display
+    const float maxTextWidth = displayBox.width - 40;
+
+    // Pre-calculate text positions
+    const float exprFontSize = 36.0f;
+    const float dispFontSize = 54.0f;
+
     while (!WindowShouldClose()) {
         Vector2 mouse = GetMousePosition();
         int clicked   = -1;
-        // Detect button click
+
+        // Only check for button clicks if mouse button is pressed
+        // (optimization)
         if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
-            for (auto& btn : buttons) {
-                if (CheckCollisionPointRec(mouse, btn.rect)) {
+            // Detect button click - only check buttons that could be under the
+            // mouse
+            for (const auto& btn : buttons) {
+                // Quick boundary check before detailed collision check
+                if (mouse.x >= btn.rect.x &&
+                    mouse.x <= (btn.rect.x + btn.rect.width) &&
+                    mouse.y >= btn.rect.y &&
+                    mouse.y <= (btn.rect.y + btn.rect.height)) {
                     clicked = btn.id;
                     break;
                 }
             }
-        }
-        // Handle button press logic
-        if (clicked != -1) {
-            HandleButtonPress(calc, clicked);
+
+            // Handle button press logic
+            if (clicked != -1) {
+                HandleButtonPress(calc, clicked);
+            }
         }
         BeginDrawing();
         ClearBackground(calc.isDarkMode ? BgColor().white : BgColor().darkGray);
@@ -94,31 +110,33 @@ int main() {
             return result;
         };
 
-        // Calculate text sizes for alignment
-        float exprFontSize = 36.0f;
-        float dispFontSize = 54.0f;
-        float maxTextWidth = displayBox.width - 40;
-        std::string exprToDraw =
-            TruncateToFit(calc.expression, exprFontSize, maxTextWidth);
+        // Calculate text sizes for alignment - using pre-calculated constants
         std::string dispToDraw =
             TruncateToFit(calc.display, dispFontSize, maxTextWidth);
-        Vector2 exprSize =
-            MeasureTextEx(font, exprToDraw.c_str(), exprFontSize, 0);
         Vector2 dispSize =
             MeasureTextEx(font, dispToDraw.c_str(), dispFontSize, 0);
 
         // Right-align expression and display text within the display box
         Color textColor = calc.isDarkMode ? BLACK : WHITE;
 
-        float yPos = displayBox.y + 10;
-        for (const auto& entry : calc.history) {
-            DrawTextEx(font, entry.c_str(), {displayBox.x + 10, yPos}, 20, 0,
-                       GRAY);
-            yPos += 25;
+        // Display history with optimized positioning
+        const float historyStartY     = displayBox.y + 10;
+        const float historyLineHeight = 25;
+        const float historyX          = displayBox.x + 10;
+        const float historyFontSize   = 20;
+
+        // Draw history entries
+        for (size_t i = 0; i < calc.history.size(); i++) {
+            DrawTextEx(font, calc.history[i].c_str(),
+                       {historyX, historyStartY + i * historyLineHeight},
+                       historyFontSize, 0, GRAY);
         }
 
-        float dispX = displayBox.x + displayBox.width - dispSize.x - 30;
-        float dispY = displayBox.y + displayBox.height - dispSize.y - 30;
+        // Calculate display position once per frame
+        const float dispX = displayBox.x + displayBox.width - dispSize.x - 30;
+        const float dispY = displayBox.y + displayBox.height - dispSize.y - 30;
+
+        // Draw the display text
         DrawTextEx(font, dispToDraw.c_str(), {dispX, dispY}, dispFontSize, 0,
                    textColor);
 

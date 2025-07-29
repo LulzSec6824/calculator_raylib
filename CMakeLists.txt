@@ -12,16 +12,22 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     # Clang specific flags
-    set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG")
+    set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG -flto -march=native -ffast-math")
 elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
     # GCC specific flags
-    set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG")
+    set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG -flto -march=native -ffast-math")
 elseif(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
     # MSVC specific flags
-    set(CMAKE_CXX_FLAGS_RELEASE "/O2 /Ob2 /D NDEBUG")
+    set(CMAKE_CXX_FLAGS_RELEASE "/O2 /Ob3 /GL /Gy /GF /Ot /D NDEBUG")
 endif()
 
-add_executable(${PROJECT_NAME})
+# In Release mode on Windows, create a GUI application (no console window)
+if(WIN32 AND CMAKE_BUILD_TYPE STREQUAL "Release")
+    add_executable(${PROJECT_NAME} WIN32)
+else()
+    add_executable(${PROJECT_NAME})
+endif()
+# Add source files
 target_sources(${PROJECT_NAME}
     PRIVATE
        src/main.cpp
@@ -29,6 +35,14 @@ target_sources(${PROJECT_NAME}
        src/button.cpp
        src/parser.cpp
 )
+
+# Add winmain.cpp only in Release mode on Windows
+if(WIN32 AND CMAKE_BUILD_TYPE STREQUAL "Release")
+    target_sources(${PROJECT_NAME}
+        PRIVATE
+           src/winmain.cpp
+    )
+endif()
 
 target_include_directories(${PROJECT_NAME} PRIVATE includes)
 
