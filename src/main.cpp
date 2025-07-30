@@ -1,12 +1,9 @@
-#include <raylib.h>
-
-#include <iomanip>
 #include <string>
 #include <vector>
 
 #include "../includes/button.h"
 #include "../includes/calculator.h"
-#include "../includes/parser.h"
+#include "../raylib_v5/src/raylib.h"
 
 struct BgColor {
     Color white    = {255, 255, 255, 255};
