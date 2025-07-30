@@ -20,6 +20,6 @@ echo -e "\033[1;36mBuilding the project...\033[0m"
 cmake --build . --config Release
 
 echo -e "\033[1;32mRunning the calculator application...\033[0m"
-./Release/ray.exe
+./ray
 
 echo -e "\033[1;32mDone!\033[0m"
