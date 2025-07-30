@@ -218,3 +218,10 @@ configure_file(
     ${CMAKE_CURRENT_BINARY_DIR}/resource/Ubuntu-Regular.ttf 
     COPYONLY
 )
+
+# Copy PNG icon file for all platforms and build types
+configure_file(
+    ${CMAKE_CURRENT_SOURCE_DIR}/resource/calc.png
+    ${CMAKE_CURRENT_BINARY_DIR}/resource/calc.png
+    COPYONLY
+)

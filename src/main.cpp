@@ -32,6 +32,8 @@ int main() {
     const int screenWidth  = calculatorWidth + 2 * sidePadding;
     const int screenHeight = calculatorHeight + 2 * buttonSpacing;
     InitWindow(screenWidth, screenHeight, "Calculator in RAYLIB");
+    Image icon = LoadImage("resource/calc.png");
+    SetWindowIcon(icon);
     SetTargetFPS(60);
     Font font = LoadFontEx("resource/Ubuntu-Regular.ttf", 64, 0, 0);
     SetTextureFilter(font.texture, TEXTURE_FILTER_BILINEAR);
@@ -144,6 +146,7 @@ int main() {
         EndDrawing();
     }
     // Unload resources
+    UnloadImage(icon);
     UnloadFont(font);
     CloseWindow();
     return 0;
