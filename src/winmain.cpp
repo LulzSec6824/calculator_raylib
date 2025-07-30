@@ -7,9 +7,10 @@
 extern int main();
 
 // Windows GUI application entry point
-int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
+                   LPSTR lpCmdLine, int nCmdShow) {
     // Simply call the standard main function
     return main();
 }
 
-#endif // defined(_WIN32) && !defined(_DEBUG)
+#endif  // defined(_WIN32) && !defined(_DEBUG)

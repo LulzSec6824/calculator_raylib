@@ -122,22 +122,21 @@ void HandleButtonPress(CalculatorState& state, int clicked) {
             isFunction = true;
             break;
         case 205:  // ANS button
-            {
-                std::ostringstream oss;
-                oss << std::fixed << std::setprecision(10) << state.lastResult;
-                std::string ansStr = oss.str();
-                ansStr.erase(ansStr.find_last_not_of('0') + 1, std::string::npos);
-                if (!ansStr.empty() && ansStr.back() == '.')
-                    ansStr.pop_back();
-                
-                state.expression += ansStr;
-                if (state.display == "0") {
-                    state.display = ansStr;
-                } else {
-                    state.display += ansStr;
-                }
-                state.justEvaluated = false;
+        {
+            std::ostringstream oss;
+            oss << std::fixed << std::setprecision(10) << state.lastResult;
+            std::string ansStr = oss.str();
+            ansStr.erase(ansStr.find_last_not_of('0') + 1, std::string::npos);
+            if (!ansStr.empty() && ansStr.back() == '.') ansStr.pop_back();
+
+            state.expression += ansStr;
+            if (state.display == "0") {
+                state.display = ansStr;
+            } else {
+                state.display += ansStr;
             }
+            state.justEvaluated = false;
+        }
             return;
         // Add more for other buttons if needed
         case '=':

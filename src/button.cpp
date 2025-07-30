@@ -20,8 +20,8 @@ std::vector<Button> CreateButtons(int btnW, int btnH, int margin, int topOffset,
         {{"+/-", 103}, {"ANS", 205}, {"=", '='}, {"T", 100}, {"C", 101}}};
 
     std::vector<Button> buttons;
-    for (int row = 0; row < layout.size(); ++row) {
-        for (int col = 0; col < layout[row].size(); ++col) {
+    for (size_t row = 0; row < layout.size(); ++row) {
+        for (size_t col = 0; col < layout[row].size(); ++col) {
             Button btn;
             // Set button position and size
             btn.rect  = {static_cast<float>(leftOffset + col * (btnW + margin)),
@@ -32,7 +32,8 @@ std::vector<Button> CreateButtons(int btnW, int btnH, int margin, int topOffset,
             btn.texture  = nullptr;  // Initialize texture pointer to nullptr
             btn.fontSize = 18;
             btn.labelSize =
-                MeasureTextEx(font, btn.label.c_str(), btn.fontSize, 0);
+                MeasureTextEx(font, btn.label.c_str(),
+                              static_cast<float>(btn.fontSize), 0.0f);
             buttons.push_back(btn);
         }
     }
@@ -73,7 +74,7 @@ void DrawButtons(const std::vector<Button>& buttons, const Font& font,
             DrawTextEx(font, btn.label.c_str(),
                        {btn.rect.x + (btn.rect.width - btn.labelSize.x) / 2,
                         btn.rect.y + (btn.rect.height - btn.labelSize.y) / 2},
-                       btn.fontSize, 0, BLACK);
+                       static_cast<float>(btn.fontSize), 0, BLACK);
         }
     }
 }

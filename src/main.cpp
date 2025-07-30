@@ -61,7 +61,6 @@ int main() {
     const float maxTextWidth = displayBox.width - 40;
 
     // Pre-calculate text positions
-    const float exprFontSize = 36.0f;
     const float dispFontSize = 54.0f;
 
     while (!WindowShouldClose()) {
