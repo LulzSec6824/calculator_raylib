@@ -14,7 +14,7 @@ mkdir -p build
 cd build
 
 echo -e "\033[1;36mConfiguring with CMake (Release mode)...\033[0m"
-cmake .. -DCMAKE_BUILD_TYPE=Release
+cmake .. -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release
 
 echo -e "\033[1;36mBuilding the project...\033[0m"
 cmake --build . --config Release
