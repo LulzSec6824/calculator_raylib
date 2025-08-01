@@ -1,81 +1,466 @@
-# Raylib Calculator
+# Raylib Calculator - Cross-Platform
 
-A modern calculator application built with C++ and [raylib](https://www.raylib.com/), featuring a Windows-style UI with rounded buttons, dark gray background, antialiased fonts, mouse input, and a responsive dual-display system for expressions and results.
+[![CMake on multiple platforms](https://github.com/LulzSec6824/calculator_raylib/actions/workflows/cmake-multi-platform.yml/badge.svg)](https://github.com/LulzSec6824/calculator_raylib/actions/workflows/cmake-multi-platform.yml)
+[![Latest Release](https://img.shields.io/github/v/release/LulzSec6824/calculator_raylib)](https://github.com/LulzSec6824/calculator_raylib/releases)
+[![License: GPL v2](https://img.shields.io/badge/License-GPL_v2-blue.svg)](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html)
+[![GitHub top language](https://img.shields.io/github/languages/top/LulzSec6824/calculator_raylib)](https://github.com/LulzSec6824/calculator_raylib)
+[![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/LulzSec6824/calculator_raylib)](https://github.com/LulzSec6824/calculator_raylib)
+[![GitHub last commit](https://img.shields.io/github/last-commit/LulzSec6824/calculator_raylib)](https://github.com/LulzSec6824/calculator_raylib)
 
-## Features
-- **Dual Display System:** Unified display box showing the full input expression at the top and the current result below, with white text on a seamless background matching the app's dark gray theme.
-- **Interactive UI:** Mouse-clickable buttons with rounded corners (roundness factor of 0.4f for smooth aesthetics), hover effects, and precise collision detection.
-- **Operations Supported:** Basic arithmetic (addition, subtraction, multiplication, division), decimal points, sign toggling (+/-), clear (C), backspace (←), and equals (=) with chained operation support (equals not shown in display for cleaner UX).
-- **Error Handling:** Graceful management of division by zero, input overflow (truncates long expressions), and invalid operations.
-- **Font Rendering:** Antialiased text using Ubuntu-Regular.ttf for a crisp, modern look across platforms.
-- **Modular Architecture:** Code separated into logical components for easy maintenance and extension.
-- **Responsive Layout:** Dynamic positioning with configurable padding, offsets, and scaling to fit various screen sizes.
+A modern, cross-platform calculator built with C++ and the Raylib library. This project showcases a clean user interface, immediate feedback, and a responsive design that adapts to window resizing. It supports basic arithmetic operations, handles errors gracefully, and is structured for extensibility.
 
-## Architecture Overview
-The project is structured for modularity:
-- **main.cpp:** Handles window initialization, main loop, input processing, and rendering. Manages layout variables like screen dimensions, padding, and offsets.
-- **button.h / button.cpp:** Defines button structures, creates the grid layout (4x5 buttons), handles drawing with rounded rectangles, and manages press/hover states.
-- **calculator.h / calculator.cpp:** Manages calculator state (expression string, result), handles button press logic, performs evaluations using std::strtod, and updates display strings.
-- **resource/**: Contains fonts and other assets.
+## 🚀 Features
 
-This separation allows for easy addition of features like scientific functions or themes.
+- **Cross-Platform:** Works on Windows, macOS, and Linux
+- **Multi-Compiler Support:** MSVC, Clang, and GCC with optimized settings
+- **Link Time Optimization (LTO):** Enhanced performance in release builds
+- **Responsive UI:** Adapts to window resizing with configurable layouts
+- **No Console Window:** Clean Windows GUI experience in release builds
+- **Modern C++:** C++11 standard with clean architecture
+- **Easy to Build:** Multiple build scripts and manual build options
 
-## Installation and Build Instructions
-1. **Prerequisites:**
-   - C++ compiler (e.g clang or MSVC)
-   - [raylib](https://www.raylib.com/) library installed and linked
-   - CMake 3.10+
-2. **Clone the Repository:**
-   ```sh
-   git clone https://github.com/LulzSec6824/calculator_raylib.git
-   cd calculator_raylib
-   ```
-3. **Build:**
-   ```sh
-   cmake -S . -B build
-   cmake --build build
-   ```
-4. **Run:** Execute the binary in `build/` (e.g., `./ray` on Linux or `ray.exe` on Windows).
+## 📋 System Requirements
 
-## Usage
-- Launch the application to see the calculator window (400x500 pixels).
-- Click buttons to input numbers and operators.
-- The expression builds in the display; press '=' to evaluate (result becomes the start of the next expression).
-- Use 'C' to clear, '←' to backspace, '+/-' to toggle sign, '.' for decimals.
-- Close the window to exit.
+### Prerequisites
+- **CMake 3.10+** (build system)
+- **C++ Compiler** (one of the following):
+  - **Windows:** MSVC 2019+, Clang 12+, or MinGW-w64
+  - **macOS:** Xcode Command Line Tools (Clang)
+  - **Linux:** GCC 9+ or Clang 12+
+- **Git** (for cloning)
 
-## Project Structure
+### Platform-Specific Requirements
+
+#### Windows
+- **MSVC:** Visual Studio 2019 or later with C++ development tools
+- **MinGW:** MinGW-w64 with GCC 9+ or Clang
+
+#### macOS
+- **Xcode Command Line Tools:** `xcode-select --install`
+- **Homebrew:** Optional but recommended for additional tools
+
+#### Linux
+- **Build Tools:** `build-essential` (Ubuntu/Debian) or equivalent
+- **Development Libraries:** Usually pre-installed with build tools
+
+## 🛠️ Quick Start
+
+### Method 1: Using Build Scripts (Recommended)
+
+### Windows
+
+**Command Prompt:**
+```cmd
+# Clone repository
+git clone https://github.com/LulzSec6824/calculator_raylib.git
+cd calculator_raylib
+
+# Build and run
+build.bat
+```
+
+**Git Bash:**
+```bash
+# Clone repository
+git clone https://github.com/LulzSec6824/calculator_raylib.git
+cd calculator_raylib
+
+# Build and run
+bash bashg.sh
+```
+
+### macOS
+```bash
+# Clone repository
+git clone https://github.com/LulzSec6824/calculator_raylib.git
+cd calculator_raylib
+
+# Build and run
+bash build_macos.sh
+```
+
+### Linux
+```bash
+# Clone repository
+git clone https://github.com/LulzSec6824/calculator_raylib.git
+cd calculator_raylib
+
+# Build and run
+bash build.sh
+```
+
+### Method 2: Manual Build
+
+#### Step 1: Clone Repository
+```bash
+git clone https://github.com/LulzSec6824/calculator_raylib.git
+cd calculator_raylib
+```
+
+#### Step 2: Configure Build
+Choose your preferred build type:
+
+**Debug Build (Development):**
+```bash
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug
+```
+
+**Release Build (Production):**
+```bash
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+```
+
+**Release with Debug Info:**
+```bash
+cmake -S . -B build -DCMAKE_BUILD_TYPE=RelWithDebInfo
+```
+
+**Minimal Size Release:**
+```bash
+cmake -S . -B build -DCMAKE_BUILD_TYPE=MinSizeRel
+```
+
+#### Step 3: Build Project
+```bash
+cmake --build build --config Release
+```
+
+#### Step 4: Run Application
+```bash
+# Windows
+.\build\Release\ray.exe
+
+# macOS/Linux
+./build/ray
+```
+
+## 🔧 Advanced Build Configuration
+
+### CMake Options
+
+#### Compiler Selection
+```bash
+# Explicit compiler selection
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++
+```
+
+#### Generator Selection
+```bash
+# Visual Studio 2022 (Windows)
+cmake -S . -B build -G "Visual Studio 17 2022"
+
+# Ninja (Cross-platform)
+cmake -S . -B build -G Ninja
+
+# Xcode (macOS)
+cmake -S . -B build -G Xcode
+```
+
+#### Custom Install Directory
+```bash
+cmake -S . -B build -DCMAKE_INSTALL_PREFIX=/custom/install/path
+```
+
+### Platform-Specific Build Examples
+
+#### Windows with MSVC
+```bash
+# Configure with MSVC
+cmake -S . -B build -G "Visual Studio 17 2022" -A x64 -DCMAKE_BUILD_TYPE=Release
+
+# Build
+cmake --build build --config Release
+
+# Run
+.\build\Release\ray.exe
+```
+
+#### Windows with MinGW
+```bash
+# Configure with MinGW
+cmake -S . -B build -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release
+
+# Build
+cmake --build build --config Release
+
+# Run
+.\build\ray.exe
+```
+
+#### macOS with Xcode
+```bash
+# Configure with Xcode generator
+cmake -S . -B build -G Xcode -DCMAKE_BUILD_TYPE=Release
+
+# Build
+cmake --build build --config Release
+
+# Run
+./build/Release/ray
+```
+
+#### Linux with GCC
+```bash
+# Configure with GCC
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+
+# Build
+cmake --build build --config Release
+
+# Run
+./build/ray
+```
+
+## 🐛 Troubleshooting
+
+### Common Issues and Solutions
+
+#### CMake Not Found
+```bash
+# Windows: Install via Visual Studio Installer or Chocolatey
+choco install cmake
+
+# macOS: Install via Homebrew
+brew install cmake
+
+# Linux: Install via package manager
+sudo apt install cmake build-essential  # Ubuntu/Debian
+sudo yum install cmake gcc-c++ make     # CentOS/RHEL
+sudo pacman -S cmake base-devel         # Arch Linux
+```
+
+#### Compiler Not Found
+```bash
+# Windows: Install Visual Studio Build Tools
+# Download from: https://visualstudio.microsoft.com/downloads/
+
+# macOS: Install Xcode Command Line Tools
+xcode-select --install
+
+# Linux: Install build tools
+sudo apt update && sudo apt install build-essential  # Ubuntu/Debian
+```
+
+#### Build Fails with MinGW
+```bash
+# Ensure MinGW-w64 is installed and in PATH
+# Download from: https://www.mingw-w64.org/
+
+# Verify installation
+gcc --version
+g++ --version
+```
+
+#### Missing Dependencies
+```bash
+# Linux: Install development packages
+sudo apt install libgl1-mesa-dev libx11-dev libxrandr-dev libxi-dev
+```
+
+#### Permission Issues (Linux/macOS)
+```bash
+# Make scripts executable
+chmod +x build.sh
+chmod +x build_macos.sh
+```
+
+#### Visual Studio Generator Issues
+```bash
+# Use specific generator
+# Visual Studio 2022
+cmake -G "Visual Studio 17 2022" -A x64
+
+# Visual Studio 2019
+cmake -G "Visual Studio 16 2019" -A x64
+```
+
+### Build Verification
+
+#### Check Build Output
+```bash
+# Verify build files exist
+ls -la build/
+ls -la build/Release/  # Windows
+ls -la build/          # macOS/Linux
+
+# Check executable
+file build/Release/ray.exe  # Windows
+file build/ray              # macOS/Linux
+```
+
+#### Test Basic Functionality
+```bash
+# Quick test run
+./build/ray
+
+# Check version info (Windows)
+# Right-click executable → Properties → Details
+```
+
+## 📁 Project Structure
+
 ```
 Calculator_Raylib
-├── .clang-format
-├── .gitignore
-├── CMakeLists.txt
-├── LICENSE
-├── README.md
-├── includes/
+├── .clang-format              # Code formatting rules
+├── .github/                   # GitHub Actions workflows
+│   └── workflows/
+│       └── cmake-multi-platform.yml
+├── CMakeLists.txt             # Enhanced CMake configuration
+├── README.md                  # This file
+├── build.bat                  # Windows Command Prompt build
+├── build.bat                  # Windows build
+├── build.sh                   # Linux build script
+├── build_macos.sh             # macOS build script
+├── includes/                  # Header files
 │   ├── button.h
-│   └── calculator.h
-├── resource/
-│   └── Ubuntu-Regular.ttf
-└── src/
+│   ├── calculator.h
+│   └── parser.h
+├── raylib_v5/                 # Raylib library source
+├── resource/                  # Application resources
+│   ├── Ubuntu-Regular.ttf     # Application font
+│   └── calc.png               # Application icon
+└── src/                       # Source files
     ├── button.cpp
     ├── calculator.cpp
-    └── main.cpp
+    ├── main.cpp
+    ├── parser.cpp
+    └── winmain.cpp           # Windows GUI entry point
 ```
 
-## Customization
-- **Theme:** Modify colors in main.cpp or button.cpp for button styles.
-- **Fonts:** Swap Ubuntu-Regular.ttf in resource/.
-- **Extensions:** Add buttons in button.cpp and logic in calculator.cpp for features like sqrt or memory.
+## 🎯 Usage
 
-## Contributing
-1. Fork the repository.
-2. Create a feature branch (`git checkout -b `).
-3. Commit changes (`git commit -m 'Added some Feature'`).
-4. Push to the branch (`git push origin feature`).
-5. Open a Pull Request.
+### Basic Operations
+- **Numbers:** Click digit buttons (0-9)
+- **Operators:** +, -, ×, ÷
+- **Equals:** = to calculate result
+- **Clear:** C to reset
+- **Backspace:** ← to delete last character
+- **Decimal:** . for floating point numbers
+- **Sign:** +/- to toggle positive/negative
 
-Please follow the .clang-format for code style.
+### Advanced Features
+- **Expression Display:** Shows the full expression being built
+- **Error Handling:** Graceful handling of invalid operations
+- **Responsive Design:** Adapts to window resizing
+- **Keyboard Support:** Future enhancement planned
 
-## License
-GNU General Public License v2 - see [LICENSE](LICENSE).
+### Keyboard Shortcuts (Future)
+- **Numbers:** 0-9 keys
+- **Operators:** +, -, *, /
+- **Equals:** Enter key
+- **Clear:** Escape key
+
+## 🔧 Customization
+
+### Changing Themes
+Modify colors in `src/main.cpp` or `src/button.cpp`:
+
+```cpp
+// Example: Change button colors
+// In button.cpp, modify the Color constants
+Color buttonColor = { 200, 200, 200, 255 };  // Light gray
+Color hoverColor = { 220, 220, 220, 255 };   // Lighter gray
+Color pressColor = { 180, 180, 180, 255 };   // Darker gray
+```
+
+### Changing Fonts
+1. Replace `resource/Ubuntu-Regular.ttf` with your preferred font
+2. Ensure the font supports your target languages
+3. Rebuild the project
+
+### Adding New Buttons
+1. **Define in button.cpp:** Add new button definitions
+2. **Add logic in calculator.cpp:** Implement new button functionality
+3. **Update layout:** Modify grid positioning as needed
+
+### Extending Functionality
+- **Scientific Functions:** Add sqrt, sin, cos, tan, log, exp
+- **Memory Functions:** Add M+, M-, MR, MC buttons
+- **History:** Implement calculation history
+- **Themes:** Add multiple color schemes
+
+## 📊 Performance Optimizations
+
+### Build-Time Optimizations
+- **Link Time Optimization (LTO):** Enabled for all release builds
+- **Architecture-Specific:** Uses native CPU features when possible
+- **Compiler Optimizations:** Aggressive optimization flags per compiler
+
+### Runtime Optimizations
+- **Efficient Rendering:** Batch drawing operations
+- **Memory Management:** Minimal allocations during runtime
+- **Expression Parsing:** Optimized math parser
+
+## 🔍 Development
+
+### Code Style
+- **Formatting:** Uses `.clang-format` for consistent style
+- **Naming:** Follows C++ standard conventions
+- **Comments:** Doxygen-style documentation
+
+### Testing
+- **Manual Testing:** Use provided test cases
+- **Cross-Platform:** Test on all target platforms
+- **Edge Cases:** Test division by zero, overflow, etc.
+
+### Debugging
+- **Debug Builds:** Use `-DCMAKE_BUILD_TYPE=Debug` for debugging
+- **Address Sanitizer:** Enabled for GCC/Clang debug builds
+- **Logging:** Add debug output as needed
+
+## 🤝 Contributing
+
+We welcome contributions! Here's how to get started:
+
+### Getting Started
+1. **Fork the repository**
+2. **Clone your fork:**
+   ```bash
+   git clone https://github.com/YOUR_USERNAME/calculator_raylib.git
+   cd calculator_raylib
+   ```
+
+3. **Create feature branch:**
+   ```bash
+   git checkout -b feature/your-feature-name
+   ```
+
+### Development Workflow
+1. **Make changes** following the code style
+2. **Test thoroughly** on your platform
+3. **Commit with clear messages:**
+   ```bash
+   git commit -m "Add scientific calculator mode"
+   ```
+
+4. **Push to your fork:**
+   ```bash
+   git push origin feature/your-feature-name
+   ```
+
+5. **Create Pull Request** with detailed description
+
+### Code Guidelines
+- **Follow .clang-format** for consistent style
+- **Add tests** for new features
+- **Update documentation** for user-facing changes
+- **Test on multiple platforms** when possible
+
+### Reporting Issues
+- **Bug Reports:** Include platform, compiler, and build steps
+- **Feature Requests:** Describe use case and expected behavior
+- **Performance Issues:** Provide profiling data when possible
+
+## 📄 License
+
+This project is licensed under the GNU General Public License v2 - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- **Raylib Team:** For the excellent graphics library
+- **Contributors:** All who have contributed to this project
+- **Community:** For testing and feedback
+
+**Happy Calculating!** 🧮
+
+For the most up-to-date information, always check the [latest release](https://github.com/LulzSec6824/calculator_raylib/releases).

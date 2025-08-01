@@ -1,5 +1,7 @@
 /build
 /.vscode
 /release.md
+.env
+/.idea
 /out
-/CmakePresets.json
+/.vs
