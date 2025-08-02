@@ -48,7 +48,32 @@ endif()
 
 add_subdirectory(raylib_v5)
 
-#------- BUILD PROFILE CONFIGS-----------
+# Define RELEASE_BUILD in Release mode to use embedded resources
+if(CMAKE_BUILD_TYPE STREQUAL "Release")
+    add_definitions(-DRELEASE_BUILD)
+endif()
+
+# Add resource exporter executable
+add_executable(resource_exporter src/resource_exporter.cpp)
+target_link_libraries(resource_exporter raylib)
+
+# Custom command to generate embedded resources
+set(EMBEDDED_RESOURCE_FILES
+    ${CMAKE_CURRENT_SOURCE_DIR}/includes/font_ubuntu.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/includes/icon_calc.h
+)
+
+add_custom_command(
+    OUTPUT ${EMBEDDED_RESOURCE_FILES}
+    COMMAND resource_exporter
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    DEPENDS resource_exporter ${CMAKE_CURRENT_SOURCE_DIR}/resource/Ubuntu-Regular.ttf ${CMAKE_CURRENT_SOURCE_DIR}/resource/calc.png
+    COMMENT "Generating embedded resource files"
+)
+
+# Add custom target for resource generation
+add_custom_target(generate_resources DEPENDS ${EMBEDDED_RESOURCE_FILES})
+
 # Common flags for all compilers
 set(COMMON_C_FLAGS "")
 set(COMMON_CXX_FLAGS "")
@@ -249,14 +274,20 @@ elseif(IS_MSVC)
     set(CMAKE_EXE_LINKER_FLAGS_MINSIZEREL "${CMAKE_EXE_LINKER_FLAGS_MINSIZEREL} /LTCG /OPT:REF /OPT:ICF /CGTHREADS:8")
 endif()
 
-
 # Target configuration
 # In Release mode on Windows, create a GUI application (no console window)
 if(IS_WINDOWS)
     # Handle both single-configuration and multi-configuration generators
     if(CMAKE_CONFIGURATION_TYPES)
         # Multi-configuration generator (Visual Studio, Xcode)
-        add_executable(${PROJECT_NAME} WIN32)
+        add_executable(${PROJECT_NAME} WIN32
+            src/main.cpp
+            src/calculator.cpp
+            src/button.cpp
+            src/parser.cpp
+            src/winmain.cpp
+            ${EMBEDDED_RESOURCE_FILES}
+        )
         # Set the SUBSYSTEM:CONSOLE property for Debug and RelWithDebInfo configurations
         set_target_properties(${PROJECT_NAME} PROPERTIES
             LINK_FLAGS_DEBUG "/SUBSYSTEM:CONSOLE"
@@ -265,54 +296,43 @@ if(IS_WINDOWS)
     else()
         # Single-configuration generator
         if(CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_BUILD_TYPE STREQUAL "MinSizeRel")
-            add_executable(${PROJECT_NAME} WIN32)
+            add_executable(${PROJECT_NAME} WIN32
+                src/main.cpp
+                src/calculator.cpp
+                src/button.cpp
+                src/parser.cpp
+                src/winmain.cpp
+                ${EMBEDDED_RESOURCE_FILES}
+            )
         else()
-            add_executable(${PROJECT_NAME})
-        endif()
-    endif()
-else()
-    add_executable(${PROJECT_NAME})
-endif()
-
-# Source files
-# Common source files for all configurations
-target_sources(${PROJECT_NAME}
-    PRIVATE
-       src/main.cpp
-       src/calculator.cpp
-       src/button.cpp
-       src/parser.cpp
-)
-
-# Platform-specific source files
-if(IS_WINDOWS)
-    if(CMAKE_CONFIGURATION_TYPES)
-        # For multi-configuration generators, always include winmain.cpp
-        # It will only be used when the subsystem is Windows
-        target_sources(${PROJECT_NAME}
-            PRIVATE
-               src/winmain.cpp
-        )
-    else()
-        # For single-configuration generators, only include for GUI builds
-        if(CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_BUILD_TYPE STREQUAL "MinSizeRel")
-            target_sources(${PROJECT_NAME}
-                PRIVATE
-                   src/winmain.cpp
+            add_executable(${PROJECT_NAME}
+                src/main.cpp
+                src/calculator.cpp
+                src/button.cpp
+                src/parser.cpp
+                ${EMBEDDED_RESOURCE_FILES}
             )
         endif()
     endif()
+else()
+    add_executable(${PROJECT_NAME}
+        src/main.cpp
+        src/calculator.cpp
+        src/button.cpp
+        src/parser.cpp
+        ${EMBEDDED_RESOURCE_FILES}
+    )
 endif()
+
+# Add dependency to ensure resources are generated before building the main executable
+add_dependencies(${PROJECT_NAME} generate_resources)
 
 # Include directories
 target_include_directories(${PROJECT_NAME} PRIVATE includes)
 
 # Link libraries
 # Main dependencies
-target_link_libraries(${PROJECT_NAME}
-    PRIVATE
-        raylib
-)
+target_link_libraries(${PROJECT_NAME} PRIVATE raylib)
 
 # Add math library for non-Windows platforms
 if(NOT IS_WINDOWS)

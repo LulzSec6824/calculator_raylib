@@ -4,6 +4,7 @@
 #include "../includes/button.h"
 #include "../includes/calculator.h"
 #include "../raylib_v5/src/raylib.h"
+#include "../includes/embedded_resources.h"
 
 struct BgColor {
     Color white    = {255, 255, 255, 255};
@@ -29,10 +30,20 @@ int main() {
     const int screenWidth  = calculatorWidth + 2 * sidePadding;
     const int screenHeight = calculatorHeight + 2 * buttonSpacing;
     InitWindow(screenWidth, screenHeight, "Calculator in RAYLIB");
-    Image icon = LoadImage("resource/calc.png");
+    
+    // Load embedded resources instead of from files
+    #ifdef RELEASE_BUILD
+        // Use embedded resources in release mode
+        Image icon = LoadEmbeddedIcon();
+        Font font = LoadEmbeddedFont();
+    #else
+        // Use file resources in debug mode
+        Image icon = LoadImage("resource/calc.png");
+        Font font = LoadFontEx("resource/Ubuntu-Regular.ttf", 64, 0, 0);
+    #endif
+    
     SetWindowIcon(icon);
     SetTargetFPS(60);
-    Font font = LoadFontEx("resource/Ubuntu-Regular.ttf", 64, 0, 0);
     SetTextureFilter(font.texture, TEXTURE_FILTER_BILINEAR);
 
     // Calculate offsets
