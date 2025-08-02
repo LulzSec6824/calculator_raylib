@@ -7,9 +7,22 @@
 #endif
 
 double MathParser::evaluate(const std::string& expression) {
-    auto tokens = tokenize(expression);
-    auto rpn    = toRPN(tokens);
-    return computeRPN(rpn);
+    if (expression.empty()) {
+        throw std::runtime_error("Empty expression");
+    }
+
+    try {
+        auto tokens = tokenize(expression);
+        if (tokens.empty()) {
+            throw std::runtime_error("Invalid expression format");
+        }
+
+        auto rpn = toRPN(tokens);
+        return computeRPN(rpn);
+    } catch (const std::exception& e) {
+        // Re-throw with more context if needed
+        throw std::runtime_error(std::string("Calculation error: ") + e.what());
+    }
 }
 
 std::vector<std::string> MathParser::tokenize(const std::string& expr) {
@@ -152,28 +165,96 @@ double MathParser::applyOperator(double a, double b, const std::string& op) {
     if (op == "+") return a + b;
     if (op == "-") return a - b;
     if (op == "*") return a * b;
-    if (op == "/") return a / b;
-    if (op == "^") return std::pow(a, b);
-    throw std::runtime_error("Unknown operator");
+    if (op == "/") {
+        if (b == 0) {
+            throw std::runtime_error("Division by zero");
+        }
+        return a / b;
+    }
+    if (op == "^") {
+        // Check for invalid power operations
+        if (a == 0 && b < 0) {
+            throw std::runtime_error("Cannot raise zero to a negative power");
+        }
+        if (a < 0 && std::floor(b) != b) {
+            throw std::runtime_error(
+                "Cannot compute imaginary results (negative base with "
+                "non-integer exponent)");
+        }
+        return std::pow(a, b);
+    }
+    throw std::runtime_error("Unknown operator: " + op);
 }
 
 double MathParser::applyFunction(double a, const std::string& func) {
-    if (func == "sin")
+    // Trigonometric functions (using degrees)
+    if (func == "sin") {
         return std::sin(a * M_PI / 180.0);  // Convert degrees to radians
-    if (func == "cos")
+    }
+    if (func == "cos") {
         return std::cos(a * M_PI / 180.0);  // Convert degrees to radians
-    if (func == "tan")
+    }
+    if (func == "tan") {
+        // Check for undefined values (90°, 270°, etc.)
+        if (std::fmod(std::abs(a - 90.0), 180.0) < 1e-10) {
+            throw std::runtime_error("Tangent is undefined at " +
+                                     std::to_string(static_cast<int>(a)) +
+                                     " degrees");
+        }
         return std::tan(a * M_PI / 180.0);  // Convert degrees to radians
-    if (func == "log") return std::log10(a);
-    if (func == "ln") return std::log(a);
-    if (func == "exp") return std::exp(a);
-    if (func == "sqrt") return std::sqrt(a);
-    if (func == "asin")
+    }
+
+    // Logarithmic functions
+    if (func == "log") {
+        if (a <= 0) {
+            throw std::runtime_error(
+                "Cannot compute logarithm of non-positive number");
+        }
+        return std::log10(a);
+    }
+    if (func == "ln") {
+        if (a <= 0) {
+            throw std::runtime_error(
+                "Cannot compute natural logarithm of non-positive number");
+        }
+        return std::log(a);
+    }
+
+    // Other functions
+    if (func == "exp") {
+        return std::exp(a);
+    }
+    if (func == "sqrt") {
+        if (a < 0) {
+            throw std::runtime_error(
+                "Cannot compute square root of negative number");
+        }
+        return std::sqrt(a);
+    }
+
+    // Inverse trigonometric functions
+    if (func == "asin") {
+        if (a < -1 || a > 1) {
+            throw std::runtime_error(
+                "Inverse sine argument must be between -1 and 1");
+        }
         return std::asin(a) * 180.0 / M_PI;  // Convert radians to degrees
-    if (func == "acos")
+    }
+    if (func == "acos") {
+        if (a < -1 || a > 1) {
+            throw std::runtime_error(
+                "Inverse cosine argument must be between -1 and 1");
+        }
         return std::acos(a) * 180.0 / M_PI;  // Convert radians to degrees
-    if (func == "atan")
+    }
+    if (func == "atan") {
         return std::atan(a) * 180.0 / M_PI;  // Convert radians to degrees
-    if (func == "hyp") return std::hypot(a, a);
-    throw std::runtime_error("Unknown function");
+    }
+
+    // Hyperbolic functions
+    if (func == "hyp") {
+        return std::hypot(a, a);
+    }
+
+    throw std::runtime_error("Unknown function: " + func);
 }

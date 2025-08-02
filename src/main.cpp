@@ -1,17 +1,42 @@
+#include <chrono>  // For performance measurement
 #include <string>
 #include <vector>
 
 #include "../includes/button.h"
 #include "../includes/calculator.h"
-#include "../raylib_v5/src/raylib.h"
 #include "../includes/embedded_resources.h"
+#include "../raylib_v5/src/raylib.h"
 
-struct BgColor {
-    Color white    = {255, 255, 255, 255};
-    Color darkGray = {50, 50, 50, 255};
+// Theme colors for light and dark mode
+struct Theme {
+    // Background colors
+    Color bgLight = {255, 255, 255, 255};  // White
+    Color bgDark  = {50, 50, 50, 255};     // Dark Gray
+
+    // Display box colors
+    Color displayLight = LIGHTGRAY;
+    Color displayDark  = DARKGRAY;
+
+    // Text colors
+    Color textLight   = BLACK;
+    Color textDark    = WHITE;
+    Color textHistory = GRAY;
+
+    // Button colors
+    Color buttonNormalLight = RAYWHITE;
+    Color buttonNormalDark  = DARKGRAY;
+    Color buttonHoverLight  = LIGHTGRAY;
+    Color buttonHoverDark   = GRAY;
+    Color buttonTextLight   = BLACK;
+    Color buttonTextDark    = WHITE;
 };
 
 int main() {
+    // Performance tracking variables
+    double frameTime    = 0.0;
+    int frameCount      = 0;
+    double avgFrameTime = 0.0;
+
     // UI layout parameters
     const int buttonRows       = 6;
     const int buttonHeight     = 45;
@@ -29,19 +54,19 @@ int main() {
     // Window and UI layout setup
     const int screenWidth  = calculatorWidth + 2 * sidePadding;
     const int screenHeight = calculatorHeight + 2 * buttonSpacing;
-    InitWindow(screenWidth, screenHeight, "Calculator in RAYLIB");
-    
-    // Load embedded resources instead of from files
-    #ifdef RELEASE_BUILD
-        // Use embedded resources in release mode
-        Image icon = LoadEmbeddedIcon();
-        Font font = LoadEmbeddedFont();
-    #else
-        // Use file resources in debug mode
-        Image icon = LoadImage("resource/calc.png");
-        Font font = LoadFontEx("resource/Ubuntu-Regular.ttf", 64, 0, 0);
-    #endif
-    
+    InitWindow(screenWidth, screenHeight, "Scientific Calculator");
+
+// Load embedded resources instead of from files
+#ifdef RELEASE_BUILD
+    // Use embedded resources in release mode
+    Image icon = LoadEmbeddedIcon();
+    Font font  = LoadEmbeddedFont();
+#else
+    // Use file resources in debug mode
+    Image icon = LoadImage("resource/calc.png");
+    Font font  = LoadFontEx("resource/Ubuntu-Regular.ttf", 64, 0, 0);
+#endif
+
     SetWindowIcon(icon);
     SetTargetFPS(60);
     SetTextureFilter(font.texture, TEXTURE_FILTER_BILINEAR);
@@ -58,6 +83,9 @@ int main() {
     std::vector<Button> buttons = CreateButtons(
         btnW, buttonHeight, buttonSpacing, topOffset, leftOffset, font);
 
+    // Initialize theme
+    Theme theme;
+
     // These values are constant, so they can be calculated once outside the
     // loop
     const int displayBoxWidth  = calculatorWidth;
@@ -70,10 +98,16 @@ int main() {
     // Pre-calculate maximum text width for display
     const float maxTextWidth = displayBox.width - 40;
 
-    // Pre-calculate text positions
-    const float dispFontSize = 54.0f;
+    // Pre-calculate text positions and sizes
+    const float dispFontSize    = 54.0f;
+    const float exprFontSize    = 24.0f;
+    const float historyFontSize = 20.0f;
+    const float statusFontSize  = 16.0f;
 
     while (!WindowShouldClose()) {
+        // Start frame timing
+        auto frameStart = std::chrono::high_resolution_clock::now();
+
         Vector2 mouse = GetMousePosition();
         int clicked   = -1;
 
@@ -99,10 +133,11 @@ int main() {
             }
         }
         BeginDrawing();
-        ClearBackground(calc.isDarkMode ? BgColor().white : BgColor().darkGray);
+        ClearBackground(calc.isDarkMode ? theme.bgLight : theme.bgDark);
 
         // Draw display box with theme-appropriate color
-        DrawRectangleRec(displayBox, calc.isDarkMode ? LIGHTGRAY : DARKGRAY);
+        DrawRectangleRec(displayBox, calc.isDarkMode ? theme.displayLight
+                                                     : theme.displayDark);
 
         // Helper function to truncate string to fit width
         auto TruncateToFit = [&](const std::string& text, float fontSize,
@@ -126,19 +161,44 @@ int main() {
             MeasureTextEx(font, dispToDraw.c_str(), dispFontSize, 0);
 
         // Right-align expression and display text within the display box
-        Color textColor = calc.isDarkMode ? BLACK : WHITE;
+        Color textColor = calc.isDarkMode ? theme.textLight : theme.textDark;
 
         // Display history with optimized positioning
         const float historyStartY     = displayBox.y + 10;
         const float historyLineHeight = 25;
         const float historyX          = displayBox.x + 10;
-        const float historyFontSize   = 20;
 
         // Draw history entries
         for (size_t i = 0; i < calc.history.size(); i++) {
             DrawTextEx(font, calc.history[i].c_str(),
                        {historyX, historyStartY + i * historyLineHeight},
-                       historyFontSize, 0, GRAY);
+                       historyFontSize, 0, theme.textHistory);
+        }
+
+        // Draw current expression above the result
+        if (!calc.expression.empty()) {
+            std::string exprToDraw =
+                TruncateToFit(calc.expression, exprFontSize, maxTextWidth);
+            Vector2 exprSize =
+                MeasureTextEx(font, exprToDraw.c_str(), exprFontSize, 0);
+            float exprX = displayBox.x + displayBox.width - exprSize.x - 30;
+            float exprY = displayBox.y + displayBox.height - dispSize.y - 70;
+            DrawTextEx(font, exprToDraw.c_str(), {exprX, exprY}, exprFontSize,
+                       0,
+                       calc.isDarkMode ? Fade(theme.textLight, 0.7f)
+                                       : Fade(theme.textDark, 0.7f));
+        }
+
+        // Display error message if in error state
+        if (calc.errorState && !calc.errorMessage.empty()) {
+            std::string errorToDraw = TruncateToFit(
+                "Error: " + calc.errorMessage, exprFontSize, maxTextWidth);
+            Vector2 errorSize =
+                MeasureTextEx(font, errorToDraw.c_str(), exprFontSize, 0);
+            float errorX = displayBox.x + 30;
+            float errorY = displayBox.y + displayBox.height - 60;
+            DrawTextEx(font, errorToDraw.c_str(), {errorX, errorY},
+                       exprFontSize, 0, RED);
         }
 
         // Calculate display position once per frame
@@ -151,6 +211,36 @@ int main() {
 
         // Draw calculator buttons
         DrawButtons(buttons, font, mouse, calc.isDarkMode);
+
+        // Calculate and display performance metrics
+        auto frameEnd = std::chrono::high_resolution_clock::now();
+        frameTime =
+            std::chrono::duration<double, std::milli>(frameEnd - frameStart)
+                .count();
+
+        // Update running average
+        frameCount++;
+        avgFrameTime = avgFrameTime + (frameTime - avgFrameTime) / frameCount;
+
+        // Display performance info
+        char perfInfo[64];
+        sprintf(perfInfo, "FPS: %d | Frame: %.2f ms | Avg: %.2f ms", GetFPS(),
+                frameTime, avgFrameTime);
+        DrawTextEx(font, perfInfo,
+                   {displayBox.x + 10, displayBox.y + displayBox.height - 30},
+                   statusFontSize, 0,
+                   calc.isDarkMode ? Fade(theme.textLight, 0.5f)
+                                   : Fade(theme.textDark, 0.5f));
+
+        // Display mode indicator
+        const char* modeText = calc.isDarkMode ? "Light Mode" : "Dark Mode";
+        DrawTextEx(font, modeText,
+                   {displayBox.x + displayBox.width - 100,
+                    displayBox.y + displayBox.height - 30},
+                   statusFontSize, 0,
+                   calc.isDarkMode ? Fade(theme.textLight, 0.5f)
+                                   : Fade(theme.textDark, 0.5f));
+
         EndDrawing();
     }
     // Unload resources

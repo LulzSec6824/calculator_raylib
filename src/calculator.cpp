@@ -1,5 +1,7 @@
 #include "../includes/calculator.h"
 
+#include <algorithm>
+#include <cmath>
 #include <iomanip>
 #include <sstream>
 
@@ -15,10 +17,43 @@ CalculatorState::CalculatorState()
       op(0),
       enteringSecond(false),
       justEvaluated(false),
-      isDarkMode(false) {}
+      isDarkMode(false),
+      errorState(false),
+      errorMessage("") {}
+
+// Format a number for display, removing trailing zeros and decimal point if
+// needed
+std::string FormatNumber(double value, int precision = 10) {
+    // Handle special cases
+    if (std::isnan(value)) return "Error: NaN";
+    if (std::isinf(value)) return value > 0 ? "Infinity" : "-Infinity";
+
+    // Format with fixed precision
+    std::ostringstream oss;
+    oss << std::fixed << std::setprecision(precision) << value;
+    std::string result = oss.str();
+
+    // Remove trailing zeros
+    result.erase(result.find_last_not_of('0') + 1, std::string::npos);
+
+    // Remove decimal point if it's the last character
+    if (!result.empty() && result.back() == '.') result.pop_back();
+
+    return result;
+}
 
 // Handles all button press events and updates calculator state accordingly
 void HandleButtonPress(CalculatorState& state, int clicked) {
+    // Clear error state when any button is pressed
+    if (state.errorState) {
+        state.errorState   = false;
+        state.errorMessage = "";
+        if (clicked != 101) {  // If not the Clear button
+            state.display    = "0";
+            state.expression = "";
+        }
+    }
+
     std::string append;
     bool isFunction = false;
     switch (clicked) {
@@ -61,12 +96,36 @@ void HandleButtonPress(CalculatorState& state, int clicked) {
         case 100:
             state.isDarkMode = !state.isDarkMode;
             return;
-        case 101:  // C
-            state.expression = "";
-            state.display    = "0";
+        case 101:  // C - Clear
+            state.expression   = "";
+            state.display      = "0";
+            state.errorState   = false;
+            state.errorMessage = "";
             return;
         case 102:  // Backspace
-            if (!state.expression.empty()) state.expression.pop_back();
+            if (!state.expression.empty()) {
+                // Handle function names (remove the whole function name)
+                static const std::vector<std::string> functions = {
+                    "sin(",  "cos(", "tan(",  "log(",  "ln(",  "exp(",
+                    "sqrt(", "hyp(", "asin(", "acos(", "atan("};
+
+                bool functionRemoved = false;
+                for (const auto& func : functions) {
+                    if (state.expression.size() >= func.size() &&
+                        state.expression.substr(state.expression.size() -
+                                                func.size()) == func) {
+                        state.expression.erase(state.expression.size() -
+                                               func.size());
+                        functionRemoved = true;
+                        break;
+                    }
+                }
+
+                if (!functionRemoved) {
+                    state.expression.pop_back();
+                }
+            }
+
             if (state.display != "0" && !state.display.empty())
                 state.display.pop_back();
             if (state.display.empty()) state.display = "0";
@@ -146,28 +205,64 @@ void HandleButtonPress(CalculatorState& state, int clicked) {
                     return;
                 }
 
-                MathParser parser;
-                double result = parser.evaluate(state.expression);
-                std::ostringstream oss;
-                oss << std::fixed << std::setprecision(10) << result;
-                std::string resultStr = oss.str();
-                resultStr.erase(resultStr.find_last_not_of('0') + 1,
-                                std::string::npos);
-                if (!resultStr.empty() && resultStr.back() == '.')
-                    resultStr.pop_back();
+                // Check for unbalanced parentheses
+                int openParens = 0;
+                for (char c : state.expression) {
+                    if (c == '(')
+                        openParens++;
+                    else if (c == ')')
+                        openParens--;
+                }
 
-                if (state.history.size() >= 2) {
+                // Auto-complete missing closing parentheses
+                std::string evaluationExpr = state.expression;
+                while (openParens > 0) {
+                    evaluationExpr += ")";
+                    openParens--;
+                }
+
+                MathParser parser;
+                double result = parser.evaluate(evaluationExpr);
+
+                // Format the result with proper precision
+                std::string resultStr = FormatNumber(result);
+
+                // Limit history size to prevent memory growth
+                if (state.history.size() >= 5) {
                     state.history.erase(state.history.begin());
                 }
-                state.history.push_back(state.expression + " = " + resultStr);
+
+                // Add to history with the actual expression used (with
+                // auto-completed parentheses if any)
+                if (evaluationExpr != state.expression) {
+                    state.history.push_back(state.expression + ")..." + " = " +
+                                            resultStr);
+                } else {
+                    state.history.push_back(state.expression + " = " +
+                                            resultStr);
+                }
 
                 state.display       = resultStr;
                 state.expression    = resultStr;
                 state.lastResult    = result;
                 state.justEvaluated = true;
+            } catch (const std::exception& e) {
+                // Provide more informative error message
+                state.display      = "Error";
+                state.expression   = "";
+                state.errorState   = true;
+                state.errorMessage = e.what();
+
+                // Add error to history
+                if (state.history.size() >= 5) {
+                    state.history.erase(state.history.begin());
+                }
+                state.history.push_back("Error: " + std::string(e.what()));
             } catch (...) {
-                state.display    = "Error";
-                state.expression = "";
+                state.display      = "Error";
+                state.expression   = "";
+                state.errorState   = true;
+                state.errorMessage = "Unknown error";
             }
             return;
     }

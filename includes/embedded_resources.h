@@ -22,14 +22,16 @@ Font LoadEmbeddedFont(void) {
 
     // Load texture from memory using the decompressed data
     int fontDataSize = 0;
-    unsigned char *data = DecompressData(fontData_FontUbuntu, COMPRESSED_DATA_SIZE_FONT_FONTUBUNTU, &fontDataSize);
-    Image imFont = { data, 1024, 512, 1, 2 };
-    
+    unsigned char* data =
+        DecompressData(fontData_FontUbuntu,
+                       COMPRESSED_DATA_SIZE_FONT_FONTUBUNTU, &fontDataSize);
+    Image imFont = {data, 1024, 512, 1, 2};
+
     font.texture = LoadTextureFromImage(imFont);
     UnloadImage(imFont);  // Uncompressed data can be unloaded from memory
-    
+
     // Assign glyph recs and info data directly
-    font.recs = fontRecs_FontUbuntu;
+    font.recs   = fontRecs_FontUbuntu;
     font.glyphs = fontGlyphs_FontUbuntu;
 
     return font;

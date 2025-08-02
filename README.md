@@ -7,7 +7,7 @@
 [![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/LulzSec6824/calculator_raylib)](https://github.com/LulzSec6824/calculator_raylib)
 [![GitHub last commit](https://img.shields.io/github/last-commit/LulzSec6824/calculator_raylib)](https://github.com/LulzSec6824/calculator_raylib)
 
-A modern, cross-platform calculator built with C++ and the Raylib library. This project showcases a clean user interface, immediate feedback, and a responsive design that adapts to window resizing. It supports basic arithmetic operations, handles errors gracefully, and is structured for extensibility.
+A modern, cross-platform scientific calculator built with C++ and the Raylib library. This project showcases a clean user interface with light/dark theme support, immediate feedback with detailed error messages, performance metrics display, and a responsive design that adapts to window resizing. It supports basic arithmetic operations, scientific functions, handles errors gracefully, and is structured for extensibility.
 
 ## 🚀 Features
 
@@ -15,6 +15,11 @@ A modern, cross-platform calculator built with C++ and the Raylib library. This 
 - **Multi-Compiler Support:** MSVC, Clang, and GCC with optimized settings
 - **Link Time Optimization (LTO):** Enhanced performance in release builds
 - **Responsive UI:** Adapts to window resizing with configurable layouts
+- **Light/Dark Theme:** Toggle between light and dark mode with the theme button
+- **Performance Metrics:** Real-time display of FPS and frame time
+- **Scientific Functions:** Support for sin, cos, tan, log, sqrt and more
+- **Detailed Error Handling:** Informative error messages for calculation errors
+- **Expression History:** View previous calculations with results
 - **No Console Window:** Clean Windows GUI experience in release builds
 - **Modern C++:** C++11 standard with clean architecture
 - **Easy to Build:** Multiple build scripts and manual build options
@@ -308,23 +313,28 @@ Calculator_Raylib
 ├── CMakeLists.txt             # Enhanced CMake configuration
 ├── README.md                  # This file
 ├── build.bat                  # Windows Command Prompt build
-├── build.bat                  # Windows build
 ├── build.sh                   # Linux build script
 ├── build_macos.sh             # macOS build script
+├── generate_embedded_resources.bat # Resource embedding script
+├── EMBEDDING_RESOURCES.md     # Resource embedding documentation
 ├── includes/                  # Header files
-│   ├── button.h
-│   ├── calculator.h
-│   └── parser.h
+│   ├── button.h               # Button structure and functions
+│   ├── calculator.h           # Calculator state and logic
+│   ├── parser.h               # Mathematical expression parser
+│   ├── embedded_resources.h   # Embedded resources header
+│   ├── font_ubuntu.h          # Embedded font data
+│   └── icon_calc.h            # Embedded icon data
 ├── raylib_v5/                 # Raylib library source
 ├── resource/                  # Application resources
 │   ├── Ubuntu-Regular.ttf     # Application font
 │   └── calc.png               # Application icon
 └── src/                       # Source files
-    ├── button.cpp
-    ├── calculator.cpp
-    ├── main.cpp
-    ├── parser.cpp
-    └── winmain.cpp           # Windows GUI entry point
+    ├── button.cpp             # Button creation and rendering with theming
+    ├── calculator.cpp         # Calculator logic with error handling
+    ├── main.cpp               # Main application with UI and performance metrics
+    ├── parser.cpp             # Mathematical expression parser with validation
+    ├── resource_exporter.cpp  # Resource embedding utility
+    └── winmain.cpp            # Windows GUI entry point
 ```
 
 ## 🎯 Usage
@@ -334,13 +344,22 @@ Calculator_Raylib
 - **Operators:** +, -, ×, ÷
 - **Equals:** = to calculate result
 - **Clear:** C to reset
-- **Backspace:** ← to delete last character
+- **Backspace:** ← to delete last character (also removes entire function names)
 - **Decimal:** . for floating point numbers
-- **Sign:** +/- to toggle positive/negative
+- **Sign:** ± to toggle positive/negative
+- **ANS:** Use previous result in new calculations
+
+### Scientific Functions
+- **Trigonometric:** sin, cos, tan, asin, acos, atan
+- **Logarithmic:** log (base 10), ln (natural logarithm)
+- **Other:** √ (square root), ^ (power)
 
 ### Advanced Features
-- **Expression Display:** Shows the full expression being built
-- **Error Handling:** Graceful handling of invalid operations
+- **Theme Toggle:** Switch between light and dark mode with the ☀/☾ button
+- **Expression Display:** Shows the full expression being built with auto-scrolling
+- **Result History:** View previous calculations and their results
+- **Performance Metrics:** Real-time FPS and frame time display
+- **Detailed Error Messages:** Clear feedback for calculation errors (division by zero, invalid operations, etc.)
 - **Responsive Design:** Adapts to window resizing
 - **Keyboard Support:** Future enhancement planned
 
@@ -353,14 +372,25 @@ Calculator_Raylib
 ## 🔧 Customization
 
 ### Changing Themes
-Modify colors in `src/main.cpp` or `src/button.cpp`:
+The calculator now supports a comprehensive theming system with light and dark modes. You can customize the themes by modifying the `Theme` struct in `src/main.cpp` and the category-based button colors in `src/button.cpp`:
 
 ```cpp
-// Example: Change button colors
-// In button.cpp, modify the Color constants
-Color buttonColor = { 200, 200, 200, 255 };  // Light gray
-Color hoverColor = { 220, 220, 220, 255 };   // Lighter gray
-Color pressColor = { 180, 180, 180, 255 };   // Darker gray
+// In main.cpp, modify the Theme struct
+struct Theme {
+    Color bgColor;           // Background color
+    Color displayBoxColor;   // Display box color
+    Color textColor;         // Text color
+    Color buttonColor;       // Default button color
+};
+
+// In button.cpp, modify colors for different button categories
+std::unordered_map<int, Color> lightModeColors = {
+    {NUMBER, LIGHTGRAY},
+    {OPERATOR, SKYBLUE},
+    {FUNCTION, GOLD},
+    {CONTROL, ORANGE},
+    {SPECIAL, GREEN}
+};
 ```
 
 ### Changing Fonts
@@ -374,10 +404,11 @@ Color pressColor = { 180, 180, 180, 255 };   // Darker gray
 3. **Update layout:** Modify grid positioning as needed
 
 ### Extending Functionality
-- **Scientific Functions:** Add sqrt, sin, cos, tan, log, exp
+- **Additional Scientific Functions:** Add more functions like exp, factorial, absolute value
 - **Memory Functions:** Add M+, M-, MR, MC buttons
-- **History:** Implement calculation history
-- **Themes:** Add multiple color schemes
+- **Persistent Settings:** Save user preferences like theme choice
+- **Graphing Capabilities:** Implement basic function graphing
+- **Custom Button Layout:** Allow users to customize button arrangement
 
 ## 📊 Performance Optimizations
 
@@ -387,9 +418,12 @@ Color pressColor = { 180, 180, 180, 255 };   // Darker gray
 - **Compiler Optimizations:** Aggressive optimization flags per compiler
 
 ### Runtime Optimizations
-- **Efficient Rendering:** Batch drawing operations
-- **Memory Management:** Minimal allocations during runtime
-- **Expression Parsing:** Optimized math parser
+- **Performance Metrics Display:** Real-time FPS and frame time monitoring
+- **Efficient Rendering:** Optimized drawing operations with category-based button rendering
+- **Memory Management:** Minimal allocations during runtime with improved string handling
+- **Expression Parsing:** Enhanced math parser with optimized error handling
+- **Smart Backspace:** Efficiently removes entire function names in one operation
+- **Cached Theme Colors:** Pre-calculated color values for different button categories
 
 ## 🔍 Development
 

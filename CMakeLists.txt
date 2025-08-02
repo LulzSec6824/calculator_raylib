@@ -63,16 +63,20 @@ set(EMBEDDED_RESOURCE_FILES
     ${CMAKE_CURRENT_SOURCE_DIR}/includes/icon_calc.h
 )
 
+# Make sure the includes directory exists
+file(MAKE_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/includes)
+
 add_custom_command(
     OUTPUT ${EMBEDDED_RESOURCE_FILES}
     COMMAND resource_exporter
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     DEPENDS resource_exporter ${CMAKE_CURRENT_SOURCE_DIR}/resource/Ubuntu-Regular.ttf ${CMAKE_CURRENT_SOURCE_DIR}/resource/calc.png
     COMMENT "Generating embedded resource files"
+    VERBATIM
 )
 
 # Add custom target for resource generation
-add_custom_target(generate_resources DEPENDS ${EMBEDDED_RESOURCE_FILES})
+add_custom_target(generate_resources ALL DEPENDS ${EMBEDDED_RESOURCE_FILES})
 
 # Common flags for all compilers
 set(COMMON_C_FLAGS "")
