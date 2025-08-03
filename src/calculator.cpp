@@ -48,14 +48,13 @@ void HandleButtonPress(CalculatorState& state, int clicked) {
     if (state.errorState) {
         state.errorState   = false;
         state.errorMessage = "";
-        if (clicked != 101) {  // If not the Clear button
-            state.display    = "0";
-            state.expression = "";
-        }
+        state.display      = "0";
+        state.expression   = "";
     }
 
+
+
     std::string append;
-    bool isFunction = false;
     switch (clicked) {
         case '0':
         case '1':
@@ -67,33 +66,41 @@ void HandleButtonPress(CalculatorState& state, int clicked) {
         case '7':
         case '8':
         case '9':
+            if (state.justEvaluated) {
+                state.expression    = "";
+                state.display       = "0";
+                state.justEvaluated = false;
+            }
+            if (state.display == "0") {
+                state.display = std::string(1, static_cast<char>(clicked));
+            } else {
+                state.display += std::string(1, static_cast<char>(clicked));
+            }
             append = std::string(1, static_cast<char>(clicked));
             break;
         case '.':
-            append = ".";
+            if (state.display.find('.') == std::string::npos) {
+                state.display += ".";
+                append = ".";
+            }
             break;
         case '+':
-            append = "+";
-            break;
         case '-':
-            append = "-";
-            break;
         case '*':
-            append = "*";
-            break;
         case '/':
-            append = "/";
-            break;
         case '^':
-            append = "^";
+            if (state.justEvaluated) {
+                state.expression = FormatNumber(state.lastResult);
+                state.justEvaluated = false;
+            }
+            append = std::string(1, static_cast<char>(clicked));
+            state.display = "0";  // Reset display for the next number
             break;
         case '(':
-            append = "(";
-            break;
         case ')':
-            append = ")";
+            append = std::string(1, static_cast<char>(clicked));
             break;
-        case 100:
+        case 100:  // Dark/Light Mode Toggle
             state.isDarkMode = !state.isDarkMode;
             return;
         case 101:  // C - Clear
@@ -104,100 +111,55 @@ void HandleButtonPress(CalculatorState& state, int clicked) {
             return;
         case 102:  // Backspace
             if (!state.expression.empty()) {
-                // Handle function names (remove the whole function name)
-                static const std::vector<std::string> functions = {
-                    "sin(",  "cos(", "tan(",  "log(",  "ln(",  "exp(",
-                    "sqrt(", "hyp(", "asin(", "acos(", "atan("};
-
-                bool functionRemoved = false;
-                for (const auto& func : functions) {
-                    if (state.expression.size() >= func.size() &&
-                        state.expression.substr(state.expression.size() -
-                                                func.size()) == func) {
-                        state.expression.erase(state.expression.size() -
-                                               func.size());
-                        functionRemoved = true;
-                        break;
-                    }
-                }
-
-                if (!functionRemoved) {
-                    state.expression.pop_back();
-                }
+                state.expression.pop_back();
             }
-
-            if (state.display != "0" && !state.display.empty())
+            if (state.display.length() > 1) {
                 state.display.pop_back();
-            if (state.display.empty()) state.display = "0";
+            } else {
+                state.display = "0";
+            }
             return;
         case 103:  // +/-
-            if (state.display[0] == '-')
-                state.display = state.display.substr(1);
-            else
-                state.display = "-" + state.display;
+            if (state.display != "0") {
+                if (state.display[0] == '-') {
+                    state.display.erase(0, 1);
+                } else {
+                    state.display.insert(0, 1, '-');
+                }
+            }
             return;
         case 110:
-            append     = "sin(";
-            isFunction = true;
-            break;
         case 111:
-            append     = "cos(";
-            isFunction = true;
-            break;
         case 112:
-            append     = "tan(";
-            isFunction = true;
-            break;
         case 113:
-            append     = "log(";
-            isFunction = true;
-            break;
         case 114:
-            append     = "ln(";
-            isFunction = true;
-            break;
         case 115:
-            append     = "exp(";
-            isFunction = true;
-            break;
         case 116:
-            append     = "sqrt(";
-            isFunction = true;
-            break;
         case 117:
-            append     = "hyp(";
-            isFunction = true;
-            break;
         case 118:
-            append     = "asin(";
-            isFunction = true;
-            break;
         case 119:
-            append     = "acos(";
-            isFunction = true;
-            break;
         case 120:
-            append     = "atan(";
-            isFunction = true;
+            if (state.justEvaluated) {
+                state.expression    = "";
+                state.justEvaluated = false;
+            }
+            switch (clicked) {
+                case 110: append = "sin("; break;
+                case 111: append = "cos("; break;
+                case 112: append = "tan("; break;
+                case 113: append = "log("; break;
+                case 114: append = "ln("; break;
+                case 115: append = "exp("; break;
+                case 116: append = "sqrt("; break;
+                case 117: append = "hyp("; break;
+                case 118: append = "asin("; break;
+                case 119: append = "acos("; break;
+                case 120: append = "atan("; break;
+            }
             break;
         case 205:  // ANS button
-        {
-            std::ostringstream oss;
-            oss << std::fixed << std::setprecision(10) << state.lastResult;
-            std::string ansStr = oss.str();
-            ansStr.erase(ansStr.find_last_not_of('0') + 1, std::string::npos);
-            if (!ansStr.empty() && ansStr.back() == '.') ansStr.pop_back();
-
-            state.expression += ansStr;
-            if (state.display == "0") {
-                state.display = ansStr;
-            } else {
-                state.display += ansStr;
-            }
-            state.justEvaluated = false;
-        }
-            return;
-        // Add more for other buttons if needed
+            append = FormatNumber(state.lastResult);
+            break;
         case '=':
             try {
                 if (state.expression.empty()) {
@@ -205,78 +167,41 @@ void HandleButtonPress(CalculatorState& state, int clicked) {
                     return;
                 }
 
-                // Check for unbalanced parentheses
-                int openParens = 0;
-                for (char c : state.expression) {
-                    if (c == '(')
-                        openParens++;
-                    else if (c == ')')
-                        openParens--;
-                }
-
                 // Auto-complete missing closing parentheses
-                std::string evaluationExpr = state.expression;
+                std::string evalExpr = state.expression;
+                int openParens       = std::count(evalExpr.begin(), evalExpr.end(), '(') -
+                                 std::count(evalExpr.begin(), evalExpr.end(), ')');
                 while (openParens > 0) {
-                    evaluationExpr += ")";
+                    evalExpr += ")";
                     openParens--;
                 }
 
                 MathParser parser;
-                double result = parser.evaluate(evaluationExpr);
+                double result = parser.evaluate(evalExpr);
 
-                // Format the result with proper precision
                 std::string resultStr = FormatNumber(result);
 
-                // Limit history size to prevent memory growth
                 if (state.history.size() >= 5) {
                     state.history.erase(state.history.begin());
                 }
-
-                // Add to history with the actual expression used (with
-                // auto-completed parentheses if any)
-                if (evaluationExpr != state.expression) {
-                    state.history.push_back(state.expression + ")..." + " = " +
-                                            resultStr);
-                } else {
-                    state.history.push_back(state.expression + " = " +
-                                            resultStr);
-                }
+                state.history.push_back(state.expression + " = " + resultStr);
 
                 state.display       = resultStr;
-                state.expression    = resultStr;
+                state.expression    = resultStr;  // Keep expression as the result for
+                                                // potential chaining
                 state.lastResult    = result;
                 state.justEvaluated = true;
             } catch (const std::exception& e) {
-                // Provide more informative error message
                 state.display      = "Error";
                 state.expression   = "";
                 state.errorState   = true;
                 state.errorMessage = e.what();
-
-                // Add error to history
-                if (state.history.size() >= 5) {
-                    state.history.erase(state.history.begin());
-                }
-                state.history.push_back("Error: " + std::string(e.what()));
-            } catch (...) {
-                state.display      = "Error";
-                state.expression   = "";
-                state.errorState   = true;
-                state.errorMessage = "Unknown error";
             }
             return;
     }
+
     if (!append.empty()) {
         state.expression += append;
-        if (isFunction) {
-            state.display = append;
-        } else {
-            if (state.display == "0") {
-                state.display = append;
-            } else {
-                state.display += append;
-            }
-        }
         state.justEvaluated = false;
     }
 }

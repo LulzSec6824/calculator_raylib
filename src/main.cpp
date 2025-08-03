@@ -132,12 +132,19 @@ int main() {
                 HandleButtonPress(calc, clicked);
             }
         }
+        // Set theme colors based on the current mode
+        Color bgColor      = calc.isDarkMode ? theme.bgDark : theme.bgLight;
+        Color displayColor = calc.isDarkMode ? theme.displayDark : theme.displayLight;
+        Color textColor    = calc.isDarkMode ? theme.textDark : theme.textLight;
+        Color historyColor = theme.textHistory;
+        Color fadedColor   = calc.isDarkMode ? Fade(theme.textDark, 0.5f)
+                                           : Fade(theme.textLight, 0.5f);
+
         BeginDrawing();
-        ClearBackground(calc.isDarkMode ? theme.bgLight : theme.bgDark);
+        ClearBackground(bgColor);
 
         // Draw display box with theme-appropriate color
-        DrawRectangleRec(displayBox, calc.isDarkMode ? theme.displayLight
-                                                     : theme.displayDark);
+        DrawRectangleRec(displayBox, displayColor);
 
         // Helper function to truncate string to fit width
         auto TruncateToFit = [&](const std::string& text, float fontSize,
@@ -154,14 +161,13 @@ int main() {
             return result;
         };
 
-        // Calculate text sizes for alignment - using pre-calculated constants
+        // Use the expression as the main display, fallback to display string if empty
+        std::string mainDisplayString = 
+            calc.expression.empty() ? calc.display : calc.expression;
         std::string dispToDraw =
-            TruncateToFit(calc.display, dispFontSize, maxTextWidth);
+            TruncateToFit(mainDisplayString, dispFontSize, maxTextWidth);
         Vector2 dispSize =
             MeasureTextEx(font, dispToDraw.c_str(), dispFontSize, 0);
-
-        // Right-align expression and display text within the display box
-        Color textColor = calc.isDarkMode ? theme.textLight : theme.textDark;
 
         // Display history with optimized positioning
         const float historyStartY     = displayBox.y + 10;
@@ -172,22 +178,10 @@ int main() {
         for (size_t i = 0; i < calc.history.size(); i++) {
             DrawTextEx(font, calc.history[i].c_str(),
                        {historyX, historyStartY + i * historyLineHeight},
-                       historyFontSize, 0, theme.textHistory);
+                       historyFontSize, 0, historyColor);
         }
 
-        // Draw current expression above the result
-        if (!calc.expression.empty()) {
-            std::string exprToDraw =
-                TruncateToFit(calc.expression, exprFontSize, maxTextWidth);
-            Vector2 exprSize =
-                MeasureTextEx(font, exprToDraw.c_str(), exprFontSize, 0);
-            float exprX = displayBox.x + displayBox.width - exprSize.x - 30;
-            float exprY = displayBox.y + displayBox.height - dispSize.y - 70;
-            DrawTextEx(font, exprToDraw.c_str(), {exprX, exprY}, exprFontSize,
-                       0,
-                       calc.isDarkMode ? Fade(theme.textLight, 0.7f)
-                                       : Fade(theme.textDark, 0.7f));
-        }
+        // The top display for the expression is now disabled.
 
         // Display error message if in error state
         if (calc.errorState && !calc.errorMessage.empty()) {
@@ -228,18 +222,14 @@ int main() {
                 frameTime, avgFrameTime);
         DrawTextEx(font, perfInfo,
                    {displayBox.x + 10, displayBox.y + displayBox.height - 30},
-                   statusFontSize, 0,
-                   calc.isDarkMode ? Fade(theme.textLight, 0.5f)
-                                   : Fade(theme.textDark, 0.5f));
+                   statusFontSize, 0, fadedColor);
 
         // Display mode indicator
-        const char* modeText = calc.isDarkMode ? "Light Mode" : "Dark Mode";
+        const char* modeText = calc.isDarkMode ? "Dark Mode" : "Light Mode";
         DrawTextEx(font, modeText,
                    {displayBox.x + displayBox.width - 100,
                     displayBox.y + displayBox.height - 30},
-                   statusFontSize, 0,
-                   calc.isDarkMode ? Fade(theme.textLight, 0.5f)
-                                   : Fade(theme.textDark, 0.5f));
+                   statusFontSize, 0, fadedColor);
 
         EndDrawing();
     }
