@@ -118,11 +118,54 @@ void HandleButtonPress(CalculatorState& state, int clicked) {
             }
             return;
         case 103:  // +/-
-            if (state.display != "0") {
-                if (state.display[0] == '-') {
+            if (state.display != "0" && !state.display.empty()) {
+                std::string old_display = state.display;
+                bool was_negative       = (old_display[0] == '-');
+
+                // Toggle sign on display
+                if (was_negative) {
                     state.display.erase(0, 1);
                 } else {
                     state.display.insert(0, 1, '-');
+                }
+
+                // Now update the expression
+                if (state.justEvaluated) {
+                    state.expression    = state.display;
+                    state.justEvaluated = false;
+                    return;
+                }
+
+                // Find what to replace in the expression
+                std::string to_replace = old_display;
+                if (was_negative) {
+                    // It might have been wrapped in parens, e.g. `5+(-3)`
+                    if (state.expression.size() >= old_display.size() + 2 &&
+                        state.expression.substr(state.expression.size() -
+                                                (old_display.size() + 2)) ==
+                            "(" + old_display + ")") {
+                        to_replace = "(" + old_display + ")";
+                    }
+                }
+
+                if (state.expression.size() >= to_replace.size() &&
+                    state.expression.substr(state.expression.size() -
+                                            to_replace.size()) == to_replace) {
+                    state.expression.resize(state.expression.size() -
+                                            to_replace.size());
+
+                    std::string to_append = state.display;
+                    if (!was_negative) {  // it is now negative
+                        if (!state.expression.empty()) {
+                            char last_char = state.expression.back();
+                            if (last_char == '+' || last_char == '-' ||
+                                last_char == '*' || last_char == '/' ||
+                                last_char == '^') {
+                                to_append = "(" + state.display + ")";
+                            }
+                        }
+                    }
+                    state.expression += to_append;
                 }
             }
             return;

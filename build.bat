@@ -48,16 +48,23 @@ if exist "build\resource_exporter.exe" (
 echo Configuring with CMake (Release mode)...
 cd build
 
-echo Configuring with CMake (Release mode)...
-cmake .. -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release
+cmake .. -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS="-O3 -DNDEBUG"
+if %errorlevel% neq 0 (
+    echo CMake configuration failed.
+    exit /b 1
+)
 
-:: Terminate any running instances of the application
-echo Ensuring no running instances...
-TASKKILL /F /IM ray.exe /T >nul 2>&1
+echo.
 
-:: Build the project
-echo Building the project...
+echo ===== Building Project =====
 cmake --build . --config Release
+if %errorlevel% neq 0 (
+    echo Build failed.
+    exit /b 1
+)
+echo Build completed successfully.
+
+echo.
 
 :: 4. RUN APPLICATION
 if %ERRORLEVEL% EQU 0 (

@@ -2,43 +2,47 @@
 
 ## Overview
 
-This document explains how resources (fonts and images) are embedded into the executable in release mode, making distribution easier without needing to include separate resource files.
+This document explains how resources like fonts and icons are embedded directly into the application's executable. This process is automatically handled by the build system in `Release` mode, which simplifies distribution by creating a single, self-contained executable that doesn't rely on external asset files.
 
 ## How It Works
 
-1. The application uses a conditional compilation approach:
-   - In debug mode, resources are loaded from files as usual
-   - In release mode, resources are embedded directly into the executable
+The build system uses a custom utility, `resource_exporter`, to convert binary resource files (e.g., `.ttf`, `.png`) into C/C++ header files. These headers contain the file's data represented as a `char` array.
 
-2. The embedding process:
-   - A resource exporter program converts font and image files to C code
-   - The generated header files contain the binary data as arrays
-   - The main application loads these resources from memory instead of disk
+Here's a step-by-step breakdown of the process:
 
-## Building with Embedded Resources
+1. **Resource Detection**: The `CMakeLists.txt` file identifies the resource files that need to be embedded.
+2. **Exporter Tool**: It builds a small command-line tool called `resource_exporter` from `src/resource_exporter.cpp`.
+3. **Header Generation**: The build system runs `resource_exporter` for each resource, which generates a corresponding `.h` file in the `build/generated` directory. For example, `assets/font_ubuntu.ttf` becomes `build/generated/font_ubuntu.h`.
+4. **Header Fixing**: A second utility, `fix_headers`, runs on the generated headers to add `#pragma once` directives, preventing multiple inclusion errors.
+5. **Conditional Compilation**: The main application code uses the `RELEASE_BUILD` preprocessor macro, which is defined by CMake during `Release` builds.
+    - When `RELEASE_BUILD` is defined, the application includes the generated headers and loads resources directly from the embedded byte arrays in memory.
+    - In `Debug` mode (when `RELEASE_BUILD` is not defined), the application loads resources from the original files in the `assets` directory. This allows for faster iteration and debugging without needing to rebuild the entire project after a resource change.
 
-To build the application with embedded resources:
+## Build Process
+
+To build the application with embedded resources, you must configure the project in `Release` mode. The provided build scripts (`build.bat`, `build.sh`, `build_macos.sh`) do this automatically.
+
+For a manual build, use the following commands:
 
 ```bash
-# Configure in Release mode
-cmake -B build -DCMAKE_BUILD_TYPE=Release
+# 1. Configure the project for a Release build
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 
-# Build
+# 2. Build the project
 cmake --build build --config Release
 ```
 
-The resulting executable will have all resources embedded and can be distributed as a standalone file.
+The resulting executable in the `build/Release` or `build` directory will be a standalone application with all resources included.
 
-## Implementation Details
+## Key Files
 
-- `resource_exporter.cpp`: Generates C header files with embedded resources
-- `embedded_resources.h`: Provides functions to load embedded resources
-- `CMakeLists.txt`: Handles the build process and defines the RELEASE_BUILD flag
-- `main.cpp`: Uses conditional compilation to choose between file loading and embedded resources
+- **`CMakeLists.txt`**: Orchestrates the entire build process, including building and running the `resource_exporter` and `fix_headers` tools.
+- **`src/resource_exporter.cpp`**: The source code for the utility that converts binary files to C++ headers.
+- **`src/fix_generated_headers.cpp`**: The source code for the utility that adds `#pragma once` to the generated headers.
+- **`src/calculator.cpp`**: Contains the application logic that conditionally loads resources from either files or memory based on the `RELEASE_BUILD` macro.
 
-## Advantages
+## Advantages of Embedding Resources
 
-- Single-file distribution
-- No risk of missing or corrupted resource files
-- Resources cannot be modified by end users
-- Simpler deployment process
+- **Simplified Distribution**: The application can be distributed as a single executable file.
+- **Robustness**: Eliminates errors related to missing, moved, or corrupted resource files.
+- **Integrity**: Prevents end-users from easily modifying or replacing application assets.

@@ -1,25 +1,63 @@
 #!/bin/bash
 
-# Script to build and run the calculator application with optimizations on macOS
-# Uses Release build type with LTO and other optimizations configured in CMakeLists.txt
+# Calculator Application Build Script
+# - Generates embedded resources
+# - Builds the application with optimizations
+# - Runs the application if build succeeds
 
-# Exit on error
 set -e
 
-echo -e "\033[1;36mCleaning build directory...\033[0m"
-rm -rf build
+echo "===== Building Calculator Application ====="
 
-echo -e "\033[1;36mCreating build directory...\033[0m"
+# 1. PREPARE DIRECTORIES
+echo "Creating necessary directories..."
+mkdir -p includes
+
+# Save any existing resource_exporter before cleaning
+saved_exporter=0
+if [ -f "build/resource_exporter" ]; then
+    mkdir -p temp
+    cp "build/resource_exporter" "temp/resource_exporter"
+    saved_exporter=1
+fi
+
+# Clean and recreate build directory
+rm -rf build
 mkdir -p build
+
+# 2. GENERATE EMBEDDED RESOURCES
+echo "Generating embedded resource files..."
+
+# Restore resource_exporter if we saved it
+if [ "$saved_exporter" -eq 1 ]; then
+    if [ -f "temp/resource_exporter" ]; then
+        cp "temp/resource_exporter" "build/resource_exporter"
+        rm -rf temp
+    fi
+fi
+
+# Generate resources if exporter exists, otherwise it will be built later
+if [ -f "build/resource_exporter" ]; then
+    echo "Running resource exporter..."
+    ./build/resource_exporter
+    echo "Done generating embedded resources!"
+else
+    echo "Resource exporter will be built during the main build process"
+fi
+
+# 3. BUILD APPLICATION
+echo "Configuring with CMake (Release mode)..."
 cd build
 
-echo -e "\033[1;36mConfiguring with CMake (Release mode)...\033[0m"
-cmake .. -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release
+cmake .. -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS="-O3 -DNDEBUG"
+echo
 
-echo -e "\033[1;36mBuilding the project...\033[0m"
+echo "===== Building Project ====="
 cmake --build . --config Release
 
-echo -e "\033[1;32mRunning the calculator application...\033[0m"
-./ray
-
-echo -e "\033[1;32mDone!\033[0m"
+# 4. RUN APPLICATION
+echo "Build completed successfully."
+echo
+echo "===== Running Calculator Application ====="
+echo
+./build/ray

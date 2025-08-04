@@ -1,3 +1,4 @@
+#pragma once
 ////////////////////////////////////////////////////////////////////////////////////////
 //                                                                                    //
 // ImageAsCode exporter v1.0 - Image pixel data exported as an array of bytes         //
