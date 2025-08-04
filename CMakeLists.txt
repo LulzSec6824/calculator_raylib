@@ -78,8 +78,6 @@ add_custom_command(
 # Add custom target for resource generation
 add_custom_target(generate_resources ALL DEPENDS ${EMBEDDED_RESOURCE_FILES})
 
-
-
 # Platform-specific optimizations
 if(IS_WINDOWS)
     if(IS_MSVC)
@@ -264,6 +262,9 @@ if(IS_WINDOWS)
             src/calculator.cpp
             src/button.cpp
             src/parser.cpp
+            src/metrics.cpp
+            src/theme.cpp
+            src/display.cpp
             src/winmain.cpp
             ${EMBEDDED_RESOURCE_FILES}
         )
@@ -280,6 +281,9 @@ if(IS_WINDOWS)
                 src/calculator.cpp
                 src/button.cpp
                 src/parser.cpp
+                src/metrics.cpp
+                src/theme.cpp
+                src/display.cpp
                 src/winmain.cpp
                 ${EMBEDDED_RESOURCE_FILES}
             )
@@ -289,6 +293,9 @@ if(IS_WINDOWS)
                 src/calculator.cpp
                 src/button.cpp
                 src/parser.cpp
+                src/metrics.cpp
+                src/theme.cpp
+                src/display.cpp
                 ${EMBEDDED_RESOURCE_FILES}
             )
         endif()
@@ -299,6 +306,9 @@ else()
         src/calculator.cpp
         src/button.cpp
         src/parser.cpp
+        src/metrics.cpp
+        src/theme.cpp
+        src/display.cpp
         ${EMBEDDED_RESOURCE_FILES}
     )
 endif()

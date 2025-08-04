@@ -1,41 +1,25 @@
-#include <chrono>  // For performance measurement
 #include <string>
 #include <vector>
 
 #include "../includes/button.h"
 #include "../includes/calculator.h"
+#include "../includes/display.h"
 #include "../includes/embedded_resources.h"
+#ifndef RELEASE_BUILD
+#include "../includes/metrics.h"
+#endif
+#include "../includes/theme.h"
 #include "../raylib_v5/src/raylib.h"
 
-// Theme colors for light and dark mode
-struct Theme {
-    // Background colors
-    Color bgLight = {255, 255, 255, 255};  // White
-    Color bgDark  = {50, 50, 50, 255};     // Dark Gray
-
-    // Display box colors
-    Color displayLight = LIGHTGRAY;
-    Color displayDark  = DARKGRAY;
-
-    // Text colors
-    Color textLight   = BLACK;
-    Color textDark    = WHITE;
-    Color textHistory = GRAY;
-
-    // Button colors
-    Color buttonNormalLight = RAYWHITE;
-    Color buttonNormalDark  = DARKGRAY;
-    Color buttonHoverLight  = LIGHTGRAY;
-    Color buttonHoverDark   = GRAY;
-    Color buttonTextLight   = BLACK;
-    Color buttonTextDark    = WHITE;
-};
+// Forward declarations
+std::vector<Button> CreateButtons(int btnW, int btnH, int margin, int topOffset,
+                                  int leftOffset, const Font& font);
 
 int main() {
-    // Performance tracking variables
-    double frameTime    = 0.0;
-    int frameCount      = 0;
-    double avgFrameTime = 0.0;
+    // Initialize performance metrics (debug builds only)
+#ifndef RELEASE_BUILD
+    PerformanceMetrics metrics;
+#endif
 
     // UI layout parameters
     const int buttonRows       = 6;
@@ -95,18 +79,14 @@ int main() {
                                   static_cast<float>(displayBoxWidth),
                                   static_cast<float>(displayBoxHeight)};
 
-    // Pre-calculate maximum text width for display
-    const float maxTextWidth = displayBox.width - 40;
-
-    // Pre-calculate text positions and sizes
-    const float dispFontSize    = 54.0f;
-    const float exprFontSize    = 24.0f;
-    const float historyFontSize = 20.0f;
-    const float statusFontSize  = 16.0f;
+    // Initialize display
+    Display display(displayBox, font);
 
     while (!WindowShouldClose()) {
-        // Start frame timing
-        auto frameStart = std::chrono::high_resolution_clock::now();
+        // Start frame timing for performance metrics (debug builds only)
+#ifndef RELEASE_BUILD
+        metrics.startFrame();
+#endif
 
         Vector2 mouse = GetMousePosition();
         int clicked   = -1;
@@ -132,105 +112,27 @@ int main() {
                 HandleButtonPress(calc, clicked);
             }
         }
-        // Set theme colors based on the current mode
-        Color bgColor = calc.isDarkMode ? theme.bgDark : theme.bgLight;
-        Color displayColor =
-            calc.isDarkMode ? theme.displayDark : theme.displayLight;
-        Color textColor    = calc.isDarkMode ? theme.textDark : theme.textLight;
-        Color historyColor = theme.textHistory;
-        Color fadedColor   = calc.isDarkMode ? Fade(theme.textDark, 0.5f)
-                                             : Fade(theme.textLight, 0.5f);
+
+        // Get background color for clearing the screen
+        Color bgColor = theme.getBackgroundColor(calc.isDarkMode);
 
         BeginDrawing();
         ClearBackground(bgColor);
 
-        // Draw display box with theme-appropriate color
-        DrawRectangleRec(displayBox, displayColor);
-
-        // Helper function to truncate string to fit width
-        auto TruncateToFit = [&](const std::string& text, float fontSize,
-                                 float maxWidth) {
-            std::string result = text;
-            Vector2 size = MeasureTextEx(font, result.c_str(), fontSize, 0);
-            while (size.x > maxWidth && result.length() > 1) {
-                result.erase(0, 1);
-                size = MeasureTextEx(font, result.c_str(), fontSize, 0);
-            }
-            if (result != text && result.length() > 1) {
-                result[0] = '.';
-            }
-            return result;
-        };
-
-        // Use the expression as the main display, fallback to display string if
-        // empty
-        std::string mainDisplayString =
-            calc.expression.empty() ? calc.display : calc.expression;
-        std::string dispToDraw =
-            TruncateToFit(mainDisplayString, dispFontSize, maxTextWidth);
-        Vector2 dispSize =
-            MeasureTextEx(font, dispToDraw.c_str(), dispFontSize, 0);
-
-        // Display history with optimized positioning
-        const float historyStartY     = displayBox.y + 10;
-        const float historyLineHeight = 25;
-        const float historyX          = displayBox.x + 10;
-
-        // Draw history entries
-        for (size_t i = 0; i < calc.history.size(); i++) {
-            DrawTextEx(font, calc.history[i].c_str(),
-                       {historyX, historyStartY + i * historyLineHeight},
-                       historyFontSize, 0, historyColor);
-        }
-
-        // The top display for the expression is now disabled.
-
-        // Display error message if in error state
-        if (calc.errorState && !calc.errorMessage.empty()) {
-            std::string errorToDraw = TruncateToFit(
-                "Error: " + calc.errorMessage, exprFontSize, maxTextWidth);
-
-            float errorX = displayBox.x + 30;
-            float errorY = displayBox.y + displayBox.height - 60;
-            DrawTextEx(font, errorToDraw.c_str(), {errorX, errorY},
-                       exprFontSize, 0, RED);
-        }
-
-        // Calculate display position once per frame
-        const float dispX = displayBox.x + displayBox.width - dispSize.x - 30;
-        const float dispY = displayBox.y + displayBox.height - dispSize.y - 30;
-
-        // Draw the display text
-        DrawTextEx(font, dispToDraw.c_str(), {dispX, dispY}, dispFontSize, 0,
-                   textColor);
+        // Draw the calculator display
+#ifndef RELEASE_BUILD
+        display.draw(calc, theme, metrics.getPerformanceInfo());
+#else
+        display.draw(calc, theme, "");
+#endif
 
         // Draw calculator buttons
         DrawButtons(buttons, font, mouse, calc.isDarkMode);
 
-        // Calculate and display performance metrics
-        auto frameEnd = std::chrono::high_resolution_clock::now();
-        frameTime =
-            std::chrono::duration<double, std::milli>(frameEnd - frameStart)
-                .count();
-
-        // Update running average
-        frameCount++;
-        avgFrameTime = avgFrameTime + (frameTime - avgFrameTime) / frameCount;
-
-        // Display performance info
-        char perfInfo[64];
-        sprintf(perfInfo, "FPS: %d | Frame: %.2f ms | Avg: %.2f ms", GetFPS(),
-                frameTime, avgFrameTime);
-        DrawTextEx(font, perfInfo,
-                   {displayBox.x + 10, displayBox.y + displayBox.height - 30},
-                   statusFontSize, 0, fadedColor);
-
-        // Display mode indicator
-        const char* modeText = calc.isDarkMode ? "Dark Mode" : "Light Mode";
-        DrawTextEx(font, modeText,
-                   {displayBox.x + displayBox.width - 100,
-                    displayBox.y + displayBox.height - 30},
-                   statusFontSize, 0, fadedColor);
+        // End frame timing and update metrics (debug builds only)
+#ifndef RELEASE_BUILD
+        metrics.endFrame();
+#endif
 
         EndDrawing();
     }
