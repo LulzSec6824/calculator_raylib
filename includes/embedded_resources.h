@@ -13,7 +13,7 @@
 // Function to load embedded font
 Font LoadEmbeddedFont(void) {
     // Load font from memory
-    Font font = {0};
+    Font font = {};
 
     // Create a new font from embedded data
     font.baseSize     = 64;  // From font_ubuntu.h
@@ -40,7 +40,7 @@ Font LoadEmbeddedFont(void) {
 // Function to load embedded icon
 Image LoadEmbeddedIcon(void) {
     // Create image from embedded data
-    Image icon   = {0};
+    Image icon   = {};
     icon.data    = ICON_CALC_DATA;
     icon.width   = ICON_CALC_WIDTH;
     icon.height  = ICON_CALC_HEIGHT;

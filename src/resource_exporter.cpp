@@ -1,6 +1,6 @@
 #include "../raylib_v5/src/raylib.h"
 
-int main(int argc, char* argv[]) {
+int main() {
     // Initialize window (required for raylib functions)
     InitWindow(100, 100, "Resource Exporter");
 

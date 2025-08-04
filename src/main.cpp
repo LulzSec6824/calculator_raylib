@@ -133,12 +133,13 @@ int main() {
             }
         }
         // Set theme colors based on the current mode
-        Color bgColor      = calc.isDarkMode ? theme.bgDark : theme.bgLight;
-        Color displayColor = calc.isDarkMode ? theme.displayDark : theme.displayLight;
+        Color bgColor = calc.isDarkMode ? theme.bgDark : theme.bgLight;
+        Color displayColor =
+            calc.isDarkMode ? theme.displayDark : theme.displayLight;
         Color textColor    = calc.isDarkMode ? theme.textDark : theme.textLight;
         Color historyColor = theme.textHistory;
         Color fadedColor   = calc.isDarkMode ? Fade(theme.textDark, 0.5f)
-                                           : Fade(theme.textLight, 0.5f);
+                                             : Fade(theme.textLight, 0.5f);
 
         BeginDrawing();
         ClearBackground(bgColor);
@@ -161,8 +162,9 @@ int main() {
             return result;
         };
 
-        // Use the expression as the main display, fallback to display string if empty
-        std::string mainDisplayString = 
+        // Use the expression as the main display, fallback to display string if
+        // empty
+        std::string mainDisplayString =
             calc.expression.empty() ? calc.display : calc.expression;
         std::string dispToDraw =
             TruncateToFit(mainDisplayString, dispFontSize, maxTextWidth);
@@ -187,8 +189,7 @@ int main() {
         if (calc.errorState && !calc.errorMessage.empty()) {
             std::string errorToDraw = TruncateToFit(
                 "Error: " + calc.errorMessage, exprFontSize, maxTextWidth);
-            Vector2 errorSize =
-                MeasureTextEx(font, errorToDraw.c_str(), exprFontSize, 0);
+
             float errorX = displayBox.x + 30;
             float errorY = displayBox.y + displayBox.height - 60;
             DrawTextEx(font, errorToDraw.c_str(), {errorX, errorY},

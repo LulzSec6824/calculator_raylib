@@ -52,8 +52,6 @@ void HandleButtonPress(CalculatorState& state, int clicked) {
         state.expression   = "";
     }
 
-
-
     std::string append;
     switch (clicked) {
         case '0':
@@ -90,10 +88,10 @@ void HandleButtonPress(CalculatorState& state, int clicked) {
         case '/':
         case '^':
             if (state.justEvaluated) {
-                state.expression = FormatNumber(state.lastResult);
+                state.expression    = FormatNumber(state.lastResult);
                 state.justEvaluated = false;
             }
-            append = std::string(1, static_cast<char>(clicked));
+            append        = std::string(1, static_cast<char>(clicked));
             state.display = "0";  // Reset display for the next number
             break;
         case '(':
@@ -144,17 +142,39 @@ void HandleButtonPress(CalculatorState& state, int clicked) {
                 state.justEvaluated = false;
             }
             switch (clicked) {
-                case 110: append = "sin("; break;
-                case 111: append = "cos("; break;
-                case 112: append = "tan("; break;
-                case 113: append = "log("; break;
-                case 114: append = "ln("; break;
-                case 115: append = "exp("; break;
-                case 116: append = "sqrt("; break;
-                case 117: append = "hyp("; break;
-                case 118: append = "asin("; break;
-                case 119: append = "acos("; break;
-                case 120: append = "atan("; break;
+                case 110:
+                    append = "sin(";
+                    break;
+                case 111:
+                    append = "cos(";
+                    break;
+                case 112:
+                    append = "tan(";
+                    break;
+                case 113:
+                    append = "log(";
+                    break;
+                case 114:
+                    append = "ln(";
+                    break;
+                case 115:
+                    append = "exp(";
+                    break;
+                case 116:
+                    append = "sqrt(";
+                    break;
+                case 117:
+                    append = "hyp(";
+                    break;
+                case 118:
+                    append = "asin(";
+                    break;
+                case 119:
+                    append = "acos(";
+                    break;
+                case 120:
+                    append = "atan(";
+                    break;
             }
             break;
         case 205:  // ANS button
@@ -169,8 +189,9 @@ void HandleButtonPress(CalculatorState& state, int clicked) {
 
                 // Auto-complete missing closing parentheses
                 std::string evalExpr = state.expression;
-                int openParens       = std::count(evalExpr.begin(), evalExpr.end(), '(') -
-                                 std::count(evalExpr.begin(), evalExpr.end(), ')');
+                int openParens =
+                    std::count(evalExpr.begin(), evalExpr.end(), '(') -
+                    std::count(evalExpr.begin(), evalExpr.end(), ')');
                 while (openParens > 0) {
                     evalExpr += ")";
                     openParens--;
@@ -186,9 +207,9 @@ void HandleButtonPress(CalculatorState& state, int clicked) {
                 }
                 state.history.push_back(state.expression + " = " + resultStr);
 
-                state.display       = resultStr;
-                state.expression    = resultStr;  // Keep expression as the result for
-                                                // potential chaining
+                state.display    = resultStr;
+                state.expression = resultStr;  // Keep expression as the result
+                                               // for potential chaining
                 state.lastResult    = result;
                 state.justEvaluated = true;
             } catch (const std::exception& e) {
