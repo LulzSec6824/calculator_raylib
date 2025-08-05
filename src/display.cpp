@@ -64,7 +64,6 @@ void Display::draw(const CalculatorState& calc, const Theme& theme,
     DrawTextEx(font, perfInfo.c_str(),
                {displayBox.x + 10, displayBox.y + displayBox.height - 30},
                statusFontSize, 0, fadedColor);
-#endif
 
     // Display mode indicator
     const char* modeText = calc.isDarkMode ? "Dark Mode" : "Light Mode";
@@ -72,6 +71,7 @@ void Display::draw(const CalculatorState& calc, const Theme& theme,
                {displayBox.x + displayBox.width - 100,
                 displayBox.y + displayBox.height - 30},
                statusFontSize, 0, fadedColor);
+#endif
 }
 
 std::string Display::truncateToFit(const std::string& text, float fontSize,
