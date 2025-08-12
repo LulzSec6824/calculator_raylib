@@ -3,14 +3,24 @@
 
 #include "../includes/button.h"
 #include "../includes/calculator.h"
-#include "../raylib_v5/src/raylib.h"
+#include "../includes/display.h"
+#include "../includes/embedded_resources.h"
+#ifndef RELEASE_BUILD
+#include "../includes/metrics.h"
+#endif
+#include "../includes/theme.h"
+#include "../raylib/src/raylib.h"
 
-struct BgColor {
-    Color white    = {255, 255, 255, 255};
-    Color darkGray = {50, 50, 50, 255};
-};
+// Forward declarations
+std::vector<Button> CreateButtons(int btnW, int btnH, int margin, int topOffset,
+                                  int leftOffset, const Font& font);
 
 int main() {
+    // Initialize performance metrics (debug builds only)
+#ifndef RELEASE_BUILD
+    PerformanceMetrics metrics;
+#endif
+
     // UI layout parameters
     const int buttonRows       = 6;
     const int buttonHeight     = 45;
@@ -28,11 +38,21 @@ int main() {
     // Window and UI layout setup
     const int screenWidth  = calculatorWidth + 2 * sidePadding;
     const int screenHeight = calculatorHeight + 2 * buttonSpacing;
-    InitWindow(screenWidth, screenHeight, "Calculator in RAYLIB");
+    InitWindow(screenWidth, screenHeight, "Scientific Calculator");
+
+// Load embedded resources instead of from files
+#ifdef RELEASE_BUILD
+    // Use embedded resources in release mode
+    Image icon = LoadEmbeddedIcon();
+    Font font  = LoadEmbeddedFont();
+#else
+    // Use file resources in debug mode
     Image icon = LoadImage("resource/calc.png");
+    Font font  = LoadFontEx("resource/Ubuntu-Regular.ttf", 64, 0, 0);
+#endif
+
     SetWindowIcon(icon);
-    SetTargetFPS(60);
-    Font font = LoadFontEx("resource/Ubuntu-Regular.ttf", 64, 0, 0);
+    SetTargetFPS(50000);
     SetTextureFilter(font.texture, TEXTURE_FILTER_BILINEAR);
 
     // Calculate offsets
@@ -47,6 +67,9 @@ int main() {
     std::vector<Button> buttons = CreateButtons(
         btnW, buttonHeight, buttonSpacing, topOffset, leftOffset, font);
 
+    // Initialize theme
+    Theme theme;
+
     // These values are constant, so they can be calculated once outside the
     // loop
     const int displayBoxWidth  = calculatorWidth;
@@ -56,13 +79,15 @@ int main() {
                                   static_cast<float>(displayBoxWidth),
                                   static_cast<float>(displayBoxHeight)};
 
-    // Pre-calculate maximum text width for display
-    const float maxTextWidth = displayBox.width - 40;
-
-    // Pre-calculate text positions
-    const float dispFontSize = 54.0f;
+    // Initialize display
+    Display display(displayBox, font);
 
     while (!WindowShouldClose()) {
+        // Start frame timing for performance metrics (debug builds only)
+#ifndef RELEASE_BUILD
+        metrics.startFrame();
+#endif
+
         Vector2 mouse = GetMousePosition();
         int clicked   = -1;
 
@@ -87,59 +112,28 @@ int main() {
                 HandleButtonPress(calc, clicked);
             }
         }
+
+        // Get background color for clearing the screen
+        Color bgColor = theme.getBackgroundColor(calc.isDarkMode);
+
         BeginDrawing();
-        ClearBackground(calc.isDarkMode ? BgColor().white : BgColor().darkGray);
+        ClearBackground(bgColor);
 
-        // Draw display box with theme-appropriate color
-        DrawRectangleRec(displayBox, calc.isDarkMode ? LIGHTGRAY : DARKGRAY);
-
-        // Helper function to truncate string to fit width
-        auto TruncateToFit = [&](const std::string& text, float fontSize,
-                                 float maxWidth) {
-            std::string result = text;
-            Vector2 size = MeasureTextEx(font, result.c_str(), fontSize, 0);
-            while (size.x > maxWidth && result.length() > 1) {
-                result.erase(0, 1);
-                size = MeasureTextEx(font, result.c_str(), fontSize, 0);
-            }
-            if (result != text && result.length() > 1) {
-                result[0] = '.';
-            }
-            return result;
-        };
-
-        // Calculate text sizes for alignment - using pre-calculated constants
-        std::string dispToDraw =
-            TruncateToFit(calc.display, dispFontSize, maxTextWidth);
-        Vector2 dispSize =
-            MeasureTextEx(font, dispToDraw.c_str(), dispFontSize, 0);
-
-        // Right-align expression and display text within the display box
-        Color textColor = calc.isDarkMode ? BLACK : WHITE;
-
-        // Display history with optimized positioning
-        const float historyStartY     = displayBox.y + 10;
-        const float historyLineHeight = 25;
-        const float historyX          = displayBox.x + 10;
-        const float historyFontSize   = 20;
-
-        // Draw history entries
-        for (size_t i = 0; i < calc.history.size(); i++) {
-            DrawTextEx(font, calc.history[i].c_str(),
-                       {historyX, historyStartY + i * historyLineHeight},
-                       historyFontSize, 0, GRAY);
-        }
-
-        // Calculate display position once per frame
-        const float dispX = displayBox.x + displayBox.width - dispSize.x - 30;
-        const float dispY = displayBox.y + displayBox.height - dispSize.y - 30;
-
-        // Draw the display text
-        DrawTextEx(font, dispToDraw.c_str(), {dispX, dispY}, dispFontSize, 0,
-                   textColor);
+        // Draw the calculator display
+#ifndef RELEASE_BUILD
+        display.draw(calc, theme, metrics.getPerformanceInfo());
+#else
+        display.draw(calc, theme, "");
+#endif
 
         // Draw calculator buttons
         DrawButtons(buttons, font, mouse, calc.isDarkMode);
+
+        // End frame timing and update metrics (debug builds only)
+#ifndef RELEASE_BUILD
+        metrics.endFrame();
+#endif
+
         EndDrawing();
     }
     // Unload resources
