@@ -11,18 +11,19 @@ A modern, cross-platform scientific calculator built with C++ and the Raylib lib
 
 ## 🚀 Features
 
-- **Cross-Platform:** Works on Windows, macOS, and Linux
-- **Multi-Compiler Support:** MSVC, Clang, and GCC with optimized settings
-- **Link Time Optimization (LTO):** Enhanced performance in release builds
-- **Responsive UI:** Adapts to window resizing with configurable layouts
-- **Light/Dark Theme:** Toggle between light and dark mode with the theme button
-- **Performance Metrics:** Real-time display of FPS and frame time
-- **Scientific Functions:** Support for sin, cos, tan, log, sqrt and more
-- **Detailed Error Handling:** Informative error messages for calculation errors
-- **Expression History:** View previous calculations with results
-- **No Console Window:** Clean Windows GUI experience in release builds (optional)
-- **Modern C++:** C++11 standard with clean architecture
-- **Easy to Build:** Multiple build scripts and manual build options
+- **Cross-Platform:** Works on Windows, macOS, and Linux.
+- **Multi-Compiler Support:** MSVC, Clang, and GCC with optimized settings.
+- **Embedded Resources:** Fonts and icons are embedded in the executable for release builds, creating a single, portable application.
+- **Link Time Optimization (LTO):** Enhanced performance in release builds.
+- **Responsive UI:** Adapts to window resizing with configurable layouts.
+- **Light/Dark Theme:** Toggle between light and dark mode with the theme button.
+- **Performance Metrics:** Real-time display of FPS and frame time.
+- **Scientific Functions:** Support for sin, cos, tan, log, sqrt and more.
+- **Detailed Error Handling:** Informative error messages for calculation errors.
+- **Expression History:** View previous calculations with results.
+- **No Console Window:** Clean Windows GUI experience in release builds.
+- **Modern C++:** C++11 standard with clean architecture.
+- **Easy to Build:** Multiple build scripts and manual build options.
 
 ## 📋 System Requirements
 
@@ -336,7 +337,7 @@ file build/ray              # macOS/Linux
 ## 📁 Project Structure
 
 ```
-Calculator_Raylib
+calculator_raylib/
 ├── .clang-format              # Code formatting rules
 ├── .github/                   # GitHub Actions workflows
 │   └── workflows/
@@ -344,27 +345,33 @@ Calculator_Raylib
 ├── CMakeLists.txt             # Enhanced CMake configuration
 ├── README.md                  # This file
 ├── build.bat                  # Windows Command Prompt build
-├── build.sh                   # Linux build script
-├── build_macos.sh             # macOS build script
-├── generate_embedded_resources.bat # Resource embedding script
+├── build.sh                   # Linux/macOS build script
+├── build_macos.sh             # macOS build script (legacy)
 ├── EMBEDDING_RESOURCES.md     # Resource embedding documentation
 ├── includes/                  # Header files
 │   ├── button.h               # Button structure and functions
 │   ├── calculator.h           # Calculator state and logic
-│   ├── parser.h               # Mathematical expression parser
+│   ├── display.h              # Display rendering logic
 │   ├── embedded_resources.h   # Embedded resources header
 │   ├── font_ubuntu.h          # Embedded font data
-│   └── icon_calc.h            # Embedded icon data
-├── raylib_v5/                 # Raylib library source
+│   ├── icon_calc.h            # Embedded icon data
+│   ├── metrics.h              # Performance metrics
+│   ├── parser.h               # Mathematical expression parser
+│   └── theme.h                # Theme definitions
+├── raylib/                    # Raylib library source
 ├── resource/                  # Application resources
 │   ├── Ubuntu-Regular.ttf     # Application font
 │   └── calc.png               # Application icon
 └── src/                       # Source files
-    ├── button.cpp             # Button creation and rendering with theming
-    ├── calculator.cpp         # Calculator logic with error handling
-    ├── main.cpp               # Main application with UI and performance metrics
-    ├── parser.cpp             # Mathematical expression parser with validation
+    ├── button.cpp             # Button creation and rendering
+    ├── calculator.cpp         # Calculator logic and error handling
+    ├── display.cpp            # Display rendering implementation
+    ├── fix_generated_headers.cpp # Utility to fix generated headers
+    ├── main.cpp               # Main application entry point
+    ├── metrics.cpp            # Performance metrics implementation
+    ├── parser.cpp             # Mathematical expression parser implementation
     ├── resource_exporter.cpp  # Resource embedding utility
+    ├── theme.cpp              # Theme implementation
     └── winmain.cpp            # Windows GUI entry point
 ```
 
@@ -408,10 +415,10 @@ Calculator_Raylib
 
 ### Changing Themes
 
-The calculator now supports a comprehensive theming system with light and dark modes. You can customize the themes by modifying the `Theme` struct in `src/main.cpp` and the category-based button colors in `src/button.cpp`:
+The calculator now supports a comprehensive theming system with light and dark modes. You can customize the themes by modifying the `Theme` struct in `src/theme.cpp` and the category-based button colors in `src/button.cpp`:
 
 ```cpp
-// In main.cpp, modify the Theme struct
+// In src/theme.cpp, modify the Theme struct
 struct Theme {
     Color bgColor;           // Background color
     Color displayBoxColor;   // Display box color
@@ -419,7 +426,7 @@ struct Theme {
     Color buttonColor;       // Default button color
 };
 
-// In button.cpp, modify colors for different button categories
+// In src/button.cpp, modify colors for different button categories
 std::unordered_map<int, Color> lightModeColors = {
     {NUMBER, LIGHTGRAY},
     {OPERATOR, SKYBLUE},
@@ -437,9 +444,9 @@ std::unordered_map<int, Color> lightModeColors = {
 
 ### Adding New Buttons
 
-1. **Define in button.cpp:** Add new button definitions
+1. **Define in button.h:** Add new button definitions
 2. **Add logic in calculator.cpp:** Implement new button functionality
-3. **Update layout:** Modify grid positioning as needed
+3. **Update layout:** Modify grid positioning in `main.cpp` as needed
 
 ### Extending Functionality
 

@@ -53,7 +53,12 @@ endif()
 
 # Add resource exporter executable
 add_executable(resource_exporter src/resource_exporter.cpp)
+target_compile_definitions(resource_exporter PRIVATE HEADLESS)
 target_link_libraries(resource_exporter raylib)
+
+if(NOT IS_WINDOWS)
+    target_link_libraries(resource_exporter PRIVATE m)
+endif()
 
 # Custom command to generate embedded resources
 set(EMBEDDED_RESOURCE_FILES
@@ -130,11 +135,11 @@ endif()
 if(IS_CLANG)
     set(CMAKE_C_FLAGS_DEBUG "-g -O0 -Wall -Wextra -Wpedantic -fsanitize=address")
     set(CMAKE_CXX_FLAGS_DEBUG "-g -O0 -Wall -Wextra -Wpedantic -fsanitize=address")
-    set(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} -fsanitize=address -static-libstdc++ -static-libgcc -static")
+    set(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} -fsanitize=address -static-libstdc++ -static-libgcc")
 elseif(IS_GCC)
     set(CMAKE_C_FLAGS_DEBUG "-g -O0 -Wall -Wextra -Wpedantic -fsanitize=address")
     set(CMAKE_CXX_FLAGS_DEBUG "-g -O0 -Wall -Wextra -Wpedantic -fsanitize=address")
-    set(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} -fsanitize=address -static-libstdc++ -static-libgcc -static")
+    set(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} -fsanitize=address -static-libstdc++ -static-libgcc")
 elseif(IS_MSVC)
     set(CMAKE_C_FLAGS_DEBUG "/Od /Zi /RTC1 /MTd /D_DEBUG /W4")
     set(CMAKE_CXX_FLAGS_DEBUG "/Od /Zi /RTC1 /MTd /D_DEBUG /W4")
@@ -147,7 +152,7 @@ if(IS_CLANG)
         # macOS Clang settings
         set(CMAKE_C_FLAGS_RELEASE "-O3 -DNDEBUG -flto -march=native -ffast-math -fomit-frame-pointer")
         set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG -flto -march=native -ffast-math -fomit-frame-pointer")
-        set(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} -flto -static-libstdc++ -static-libgcc -static")
+        set(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} -flto -static-libstdc++ -static-libgcc")
     elseif(IS_WINDOWS)
         # Windows Clang settings with enhanced optimizations
         set(CLANG_RELEASE_FLAGS "-O3 -DNDEBUG -fomit-frame-pointer -fvectorize -funroll-loops")
@@ -162,7 +167,7 @@ if(IS_CLANG)
         # Add LTO if enabled
         if(USE_LTO)
             set(CLANG_RELEASE_FLAGS "${CLANG_RELEASE_FLAGS} -flto=thin")
-            set(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} -flto=thin -static-libstdc++ -static-libgcc -static")
+            set(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} -flto=thin -static-libstdc++ -static-libgcc")
         endif()
         
         set(CMAKE_C_FLAGS_RELEASE "${CLANG_RELEASE_FLAGS}")
