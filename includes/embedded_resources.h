@@ -4,11 +4,9 @@
 // This header file contains embedded resources for the calculator application
 // Font and image data will be included from generated header files
 
-#include "../raylib_v5/src/raylib.h"
-
-// Include generated resource headers
 #include "../includes/font_ubuntu.h"
 #include "../includes/icon_calc.h"
+#include "../raylib/src/raylib.h"
 
 // Function to load embedded font
 Font LoadEmbeddedFont(void) {

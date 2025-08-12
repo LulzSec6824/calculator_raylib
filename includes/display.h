@@ -1,7 +1,7 @@
 #pragma once
 #include <string>
 
-#include "../raylib_v5/src/raylib.h"
+#include "../raylib/src/raylib.h"
 #include "calculator.h"
 #include "theme.h"
 

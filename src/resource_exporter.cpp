@@ -1,4 +1,4 @@
-#include "../raylib_v5/src/raylib.h"
+#include "../raylib/src/raylib.h"
 
 int main() {
     // Initialize window (required for raylib functions)

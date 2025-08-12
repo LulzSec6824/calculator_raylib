@@ -1,5 +1,5 @@
 #pragma once
-#include "../raylib_v5/src/raylib.h"
+#include "../raylib/src/raylib.h"
 
 struct Theme {
     // Background colors
@@ -16,12 +16,15 @@ struct Theme {
     Color textHistory = GRAY;
 
     // Button colors
-    Color buttonNormalLight = RAYWHITE;
-    Color buttonNormalDark  = DARKGRAY;
-    Color buttonHoverLight  = LIGHTGRAY;
-    Color buttonHoverDark   = GRAY;
-    Color buttonTextLight   = BLACK;
-    Color buttonTextDark    = WHITE;
+    Color numberBgLight, numberBgDark;
+    Color operatorBgLight, operatorBgDark;
+    Color functionBgLight, functionBgDark;
+    Color controlBgLight, controlBgDark;
+    Color specialBgLight, specialBgDark;
+    Color hoverLight, hoverDark;
+    Color btnTextLight, btnTextDark;
+
+    Theme();
 
     // Get background color based on dark mode setting
     Color getBackgroundColor(bool isDarkMode) const;

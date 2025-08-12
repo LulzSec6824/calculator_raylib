@@ -5,7 +5,7 @@
 #include <unordered_map>
 #include <vector>
 
-#include "../raylib_v5/src/raylib.h"
+#include "../raylib/src/raylib.h"
 
 // Button categories for visual styling
 enum class ButtonCategory { NUMBER, OPERATOR, FUNCTION, CONTROL, SPECIAL };

@@ -37,16 +37,14 @@ if(IS_MSVC)
     # Use static runtime libraries (/MT)
     foreach(flag_var
         CMAKE_C_FLAGS CMAKE_C_FLAGS_DEBUG CMAKE_C_FLAGS_RELEASE
-        CMAKE_C_FLAGS_MINSIZEREL CMAKE_C_FLAGS_RELWITHDEBINFO
-        CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE
-        CMAKE_CXX_FLAGS_MINSIZEREL CMAKE_CXX_FLAGS_RELWITHDEBINFO)
+        CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE)
         if(${flag_var} MATCHES "/MD")
             string(REGEX REPLACE "/MD" "/MT" ${flag_var} "${${flag_var}}")
         endif()
     endforeach(flag_var)
 endif()
 
-add_subdirectory(raylib_v5)
+add_subdirectory(raylib)
 
 # Define RELEASE_BUILD in Release mode to use embedded resources
 if(CMAKE_BUILD_TYPE STREQUAL "Release")
@@ -94,8 +92,8 @@ if(IS_WINDOWS)
         set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} /GL /Oi")
         set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /GL /Oi")
     elseif(IS_CLANG)
-        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Wpedantic")
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wpedantic")
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Wpedantic -Wno-missing-field-initializers -Wno-unused-function")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wpedantic -Wno-missing-field-initializers -Wno-unused-function")
         option(USE_NATIVE_ARCH "Use -march=native for Clang (may not be portable)" OFF)
         if(USE_NATIVE_ARCH)
             set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -march=native -mtune=native")
@@ -132,11 +130,11 @@ endif()
 if(IS_CLANG)
     set(CMAKE_C_FLAGS_DEBUG "-g -O0 -Wall -Wextra -Wpedantic -fsanitize=address")
     set(CMAKE_CXX_FLAGS_DEBUG "-g -O0 -Wall -Wextra -Wpedantic -fsanitize=address")
-    set(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} -fsanitize=address")
+    set(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} -fsanitize=address -static-libstdc++ -static-libgcc -static")
 elseif(IS_GCC)
     set(CMAKE_C_FLAGS_DEBUG "-g -O0 -Wall -Wextra -Wpedantic -fsanitize=address")
     set(CMAKE_CXX_FLAGS_DEBUG "-g -O0 -Wall -Wextra -Wpedantic -fsanitize=address")
-    set(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} -fsanitize=address")
+    set(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} -fsanitize=address -static-libstdc++ -static-libgcc -static")
 elseif(IS_MSVC)
     set(CMAKE_C_FLAGS_DEBUG "/Od /Zi /RTC1 /MTd /D_DEBUG /W4")
     set(CMAKE_CXX_FLAGS_DEBUG "/Od /Zi /RTC1 /MTd /D_DEBUG /W4")
@@ -149,7 +147,7 @@ if(IS_CLANG)
         # macOS Clang settings
         set(CMAKE_C_FLAGS_RELEASE "-O3 -DNDEBUG -flto -march=native -ffast-math -fomit-frame-pointer")
         set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG -flto -march=native -ffast-math -fomit-frame-pointer")
-        set(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} -flto")
+        set(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} -flto -static-libstdc++ -static-libgcc -static")
     elseif(IS_WINDOWS)
         # Windows Clang settings with enhanced optimizations
         set(CLANG_RELEASE_FLAGS "-O3 -DNDEBUG -fomit-frame-pointer -fvectorize -funroll-loops")
@@ -164,7 +162,7 @@ if(IS_CLANG)
         # Add LTO if enabled
         if(USE_LTO)
             set(CLANG_RELEASE_FLAGS "${CLANG_RELEASE_FLAGS} -flto=thin")
-            set(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} -flto=thin")
+            set(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} -flto=thin -static-libstdc++ -static-libgcc -static")
         endif()
         
         set(CMAKE_C_FLAGS_RELEASE "${CLANG_RELEASE_FLAGS}")
@@ -173,83 +171,19 @@ if(IS_CLANG)
         # Linux Clang settings with thin LTO
         set(CMAKE_C_FLAGS_RELEASE "-O3 -DNDEBUG -flto=thin -march=native -ffast-math -fomit-frame-pointer")
         set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG -flto=thin -march=native -ffast-math -fomit-frame-pointer")
-        set(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} -flto=thin")
+        set(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} -flto=thin -static-libstdc++ -static-libgcc -static")
     endif()
 elseif(IS_GCC)
     set(CMAKE_C_FLAGS_RELEASE "-O3 -DNDEBUG -flto -march=native -ffast-math -fomit-frame-pointer")
     set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG -flto -march=native -ffast-math -fomit-frame-pointer")
-    set(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} -flto")
+    set(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} -flto -static-libstdc++ -static-libgcc -static")
 elseif(IS_MSVC)
     set(CMAKE_C_FLAGS_RELEASE "/O2 /Ob3 /GL /Gy /GF /Ot /Oi /GT /Qpar /fp:fast ${ARCH_FLAG} /D NDEBUG /W4")
     set(CMAKE_CXX_FLAGS_RELEASE "/O2 /Ob3 /GL /Gy /GF /Ot /Oi /GT /Qpar /fp:fast ${ARCH_FLAG} /D NDEBUG /W4")
     set(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} /LTCG /OPT:REF /OPT:ICF /CGTHREADS:8")
 endif()
 
-# RelWithDebInfo profile settings
-if(IS_CLANG)
-    if(IS_WINDOWS)
-        # Windows Clang settings with debug info
-        set(CLANG_RELWITHDEBINFO_FLAGS "-O2 -g -DNDEBUG")
-        
-        # Add architecture flags if enabled
-        if(USE_NATIVE_ARCH)
-            set(CLANG_RELWITHDEBINFO_FLAGS "${CLANG_RELWITHDEBINFO_FLAGS} -march=native -mtune=native")
-        endif()
-        
-        # Add fast math if enabled
-        if(USE_FAST_MATH)
-            set(CLANG_RELWITHDEBINFO_FLAGS "${CLANG_RELWITHDEBINFO_FLAGS} -ffast-math")
-        endif()
-        
-        set(CMAKE_C_FLAGS_RELWITHDEBINFO "${CLANG_RELWITHDEBINFO_FLAGS}")
-        set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CLANG_RELWITHDEBINFO_FLAGS}")
-    else()
-        # macOS/Linux Clang settings
-        set(CMAKE_C_FLAGS_RELWITHDEBINFO "-O2 -g -DNDEBUG -march=native")
-        set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O2 -g -DNDEBUG -march=native")
-    endif()
-elseif(IS_GCC)
-    set(CMAKE_C_FLAGS_RELWITHDEBINFO "-O2 -g -DNDEBUG -march=native")
-    set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O2 -g -DNDEBUG -march=native")
-elseif(IS_MSVC)
-    set(CMAKE_C_FLAGS_RELWITHDEBINFO "/O2 /Zi /Gy /GF /Oi ${ARCH_FLAG} /D NDEBUG /W4 /MT")
-    set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "/O2 /Zi /Gy /GF /Oi ${ARCH_FLAG} /D NDEBUG /W4 /MT")
-    set(CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO "${CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO} /DEBUG:FULL /OPT:REF /OPT:ICF")
-endif()
 
-# MinSizeRel profile settings (optimized for size)
-if(IS_CLANG)
-    if(IS_MACOS)
-        set(CMAKE_C_FLAGS_MINSIZEREL "-Os -DNDEBUG -flto")
-        set(CMAKE_CXX_FLAGS_MINSIZEREL "-Os -DNDEBUG -flto")
-        set(CMAKE_EXE_LINKER_FLAGS_MINSIZEREL "${CMAKE_EXE_LINKER_FLAGS_MINSIZEREL} -flto")
-    elseif(IS_WINDOWS)
-        # Windows Clang settings optimized for size
-        set(CLANG_MINSIZEREL_FLAGS "-Os -DNDEBUG -fomit-frame-pointer -fvectorize")
-        
-        # Add LTO if enabled
-        if(USE_LTO)
-            set(CLANG_MINSIZEREL_FLAGS "${CLANG_MINSIZEREL_FLAGS} -flto=thin")
-            set(CMAKE_EXE_LINKER_FLAGS_MINSIZEREL "${CMAKE_EXE_LINKER_FLAGS_MINSIZEREL} -flto=thin")
-        endif()
-        
-        set(CMAKE_C_FLAGS_MINSIZEREL "${CLANG_MINSIZEREL_FLAGS}")
-        set(CMAKE_CXX_FLAGS_MINSIZEREL "${CLANG_MINSIZEREL_FLAGS}")
-    else()
-        # Linux Clang settings with thin LTO
-        set(CMAKE_C_FLAGS_MINSIZEREL "-Os -DNDEBUG -flto=thin")
-        set(CMAKE_CXX_FLAGS_MINSIZEREL "-Os -DNDEBUG -flto=thin")
-        set(CMAKE_EXE_LINKER_FLAGS_MINSIZEREL "${CMAKE_EXE_LINKER_FLAGS_MINSIZEREL} -flto=thin")
-    endif()
-elseif(IS_GCC)
-    set(CMAKE_C_FLAGS_MINSIZEREL "-Os -DNDEBUG -flto")
-    set(CMAKE_CXX_FLAGS_MINSIZEREL "-Os -DNDEBUG -flto")
-    set(CMAKE_EXE_LINKER_FLAGS_MINSIZEREL "${CMAKE_EXE_LINKER_FLAGS_MINSIZEREL} -flto")
-elseif(IS_MSVC)
-    set(CMAKE_C_FLAGS_MINSIZEREL "/O1 /Os /GL /Gy /GF /Oi /Gw ${ARCH_FLAG} /D NDEBUG /W4 /MT")
-    set(CMAKE_CXX_FLAGS_MINSIZEREL "/O1 /Os /GL /Gy /GF /Oi /Gw ${ARCH_FLAG} /D NDEBUG /W4 /MT")
-    set(CMAKE_EXE_LINKER_FLAGS_MINSIZEREL "${CMAKE_EXE_LINKER_FLAGS_MINSIZEREL} /LTCG /OPT:REF /OPT:ICF /CGTHREADS:8")
-endif()
 
 # Target configuration
 # In Release mode on Windows, create a GUI application (no console window)
@@ -268,14 +202,13 @@ if(IS_WINDOWS)
             src/winmain.cpp
             ${EMBEDDED_RESOURCE_FILES}
         )
-        # Set the SUBSYSTEM:CONSOLE property for Debug and RelWithDebInfo configurations
+        # Set the SUBSYSTEM:CONSOLE property for Debug configurations
         set_target_properties(${PROJECT_NAME} PROPERTIES
             LINK_FLAGS_DEBUG "/SUBSYSTEM:CONSOLE"
-            LINK_FLAGS_RELWITHDEBINFO "/SUBSYSTEM:CONSOLE"
         )
     else()
         # Single-configuration generator
-        if(CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_BUILD_TYPE STREQUAL "MinSizeRel")
+        if(CMAKE_BUILD_TYPE STREQUAL "Release")
             add_executable(${PROJECT_NAME} WIN32
                 src/main.cpp
                 src/calculator.cpp
