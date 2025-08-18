@@ -514,11 +514,11 @@ static void RecordAutomationEvent(void); // Record frame events (to internal eve
 
 #if defined(_WIN32) && !defined(PLATFORM_DESKTOP_RGFW)
 // NOTE: We declare Sleep() function symbol to avoid including windows.h (kernel32.lib linkage required)
-__declspec(dllimport) void __stdcall Sleep(unsigned long msTimeout);              // Required for: WaitTime()
+__declspec(dllimport) void __stdcall Sleep(unsigned long msTimeout); // Required for: WaitTime()
 #endif
 
 #if !defined(SUPPORT_MODULE_RTEXT)
-const char *TextFormat(const char *text, ...);              // Formatting of text with variables to 'embed'
+const char *TextFormat(const char *text, ...); // Formatting of text with variables to 'embed'
 #endif // !SUPPORT_MODULE_RTEXT
 
 #if defined(PLATFORM_DESKTOP)
@@ -1949,36 +1949,39 @@ bool IsFileExtension(const char *fileName, const char *ext)
     bool result = false;
     const char *fileExt = GetFileExtension(fileName);
 
+    // WARNING: fileExt points to last '.' on fileName string but it could happen
+    // that fileName is not correct: "myfile.png more text following\n"
+
     if (fileExt != NULL)
     {
-        int fileExtLen = strlen(fileExt);
-        char fileExtLower[8] = { 0 };
+        int fileExtLen = (int)strlen(fileExt);
+        char fileExtLower[16] = { 0 };
         char *fileExtLowerPtr = fileExtLower;
-        for (int i = 0; i < fileExtLen; i++)
+        for (int i = 0; (i < fileExtLen) && (i < 16); i++)
         {
             // Copy and convert to lower-case
             if ((fileExt[i] >= 'A') && (fileExt[i] <= 'Z')) fileExtLower[i] =  fileExt[i] + 32;
             else fileExtLower[i] =  fileExt[i];
         }
-        
+
         int extCount = 1;
-        int extLen = strlen(ext);
+        int extLen = (int)strlen(ext);
         char *extList = (char *)RL_CALLOC(extLen + 1, 1);
         char *extListPtrs[MAX_FILE_EXTENSIONS] = { 0 };
         strcpy(extList, ext);
         extListPtrs[0] = extList;
-        
-        for (int i = 0; i < extLen; i++) 
+
+        for (int i = 0; i < extLen; i++)
         {
             // Convert to lower-case if extension is upper-case
             if ((extList[i] >= 'A') && (extList[i] <= 'Z')) extList[i] += 32;
-            
+
             // Get pointer to next extension and add null-terminator
             if ((extList[i] == ';') && (extCount < (MAX_FILE_EXTENSIONS - 1)))
             {
-                extList[i] = '\0'; 
+                extList[i] = '\0';
                 extListPtrs[extCount] = extList + i + 1;
-                extCount++; 
+                extCount++;
             }
         }
 
@@ -1988,7 +1991,7 @@ bool IsFileExtension(const char *fileName, const char *ext)
             // does not start with the '.'
             fileExtLowerPtr = fileExtLower;
             if (extListPtrs[i][0] != '.') fileExtLowerPtr++;
-            
+
             if (strcmp(fileExtLowerPtr, extListPtrs[i]) == 0)
             {
                 result = true;
@@ -2047,11 +2050,12 @@ int GetFileLength(const char *fileName)
 }
 
 // Get pointer to extension for a filename string (includes the dot: .png)
+// WARNING: We just get the ptr but not the extension as a separate string
 const char *GetFileExtension(const char *fileName)
 {
     const char *dot = strrchr(fileName, '.');
 
-    if (!dot || dot == fileName) return NULL;
+    if (!dot || (dot == fileName)) return NULL;
 
     return dot;
 }
