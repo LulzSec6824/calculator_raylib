@@ -7,20 +7,6 @@
 
 #include "../includes/parser.h"
 
-// Constructor initializes calculator state
-CalculatorState::CalculatorState()
-    : display("0"),
-      expression(""),
-      operand1(0),
-      operand2(0),
-      lastResult(0),
-      op(0),
-      enteringSecond(false),
-      justEvaluated(false),
-      isDarkMode(false),
-      errorState(false),
-      errorMessage("") {}
-
 // Format a number for display, removing trailing zeros and decimal point if
 // needed
 std::string FormatNumber(double value, int precision = 10) {
@@ -241,7 +227,7 @@ void HandleButtonPress(CalculatorState& state, int clicked) {
                 }
 
                 MathParser parser;
-                double result = parser.evaluate(evalExpr);
+                double result = *parser.evaluate(evalExpr);
 
                 std::string resultStr = FormatNumber(result);
 

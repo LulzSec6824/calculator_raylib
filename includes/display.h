@@ -10,10 +10,10 @@ class Display {
     Rectangle displayBox;
     Font font;
     float maxTextWidth;
-    float dispFontSize;
-    float exprFontSize;
-    float historyFontSize;
-    float statusFontSize;
+    float dispFontSize{54.0f};
+    float exprFontSize{24.0f};
+    float historyFontSize{20.0f};
+    float statusFontSize{16.0f};
 
    public:
     Display(Rectangle box, Font displayFont);

@@ -1,12 +1,13 @@
 #include "../includes/parser.h"
 
 #include <cmath>
+#include <memory>
 #include <stdexcept>
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
 #endif
 
-double MathParser::evaluate(const std::string& expression) {
+std::unique_ptr<double> MathParser::evaluate(const std::string& expression) {
     if (expression.empty()) {
         throw std::runtime_error("Empty expression");
     }
@@ -18,7 +19,7 @@ double MathParser::evaluate(const std::string& expression) {
         }
 
         auto rpn = toRPN(tokens);
-        return computeRPN(rpn);
+        return std::unique_ptr<double>(new double(computeRPN(rpn)));
     } catch (const std::exception& e) {
         // Re-throw with more context if needed
         throw std::runtime_error(std::string("Calculation error: ") + e.what());

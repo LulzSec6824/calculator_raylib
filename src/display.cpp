@@ -1,16 +1,10 @@
 #include "../includes/display.h"
 
 Display::Display(Rectangle box, Font displayFont)
-    : displayBox(box),
-      font(displayFont),
-      maxTextWidth(box.width - 40),
-      dispFontSize(54.0f),
-      exprFontSize(24.0f),
-      historyFontSize(20.0f),
-      statusFontSize(16.0f) {}
+    : displayBox(box), font(displayFont), maxTextWidth(box.width - 40) {}
 
 void Display::draw(const CalculatorState& calc, const Theme& theme,
-                   const std::string& perfInfo) {
+                   [[maybe_unused]] const std::string& perfInfo) {
     // Get theme colors based on current mode
     Color displayColor = theme.getDisplayColor(calc.isDarkMode);
     Color textColor    = theme.getTextColor(calc.isDarkMode);
@@ -34,10 +28,11 @@ void Display::draw(const CalculatorState& calc, const Theme& theme,
     const float historyX          = displayBox.x + 10;
 
     // Draw history entries
-    for (size_t i = 0; i < calc.history.size(); i++) {
-        DrawTextEx(font, calc.history[i].c_str(),
-                   {historyX, historyStartY + i * historyLineHeight},
-                   historyFontSize, 0, historyColor);
+    float currentY = historyStartY;
+    for (const auto& entry : calc.history) {
+        DrawTextEx(font, entry.c_str(), {historyX, currentY}, historyFontSize,
+                   0, historyColor);
+        currentY += historyLineHeight;
     }
 
     // Display error message if in error state

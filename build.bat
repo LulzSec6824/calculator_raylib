@@ -48,7 +48,7 @@ if exist "build\resource_exporter.exe" (
 echo Configuring with CMake (Release mode)...
 cd build
 
-cmake .. -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS="-O3 -DNDEBUG"
+cmake .. -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS="-O3 -DNDEBUG -std=c++14"
 if %errorlevel% neq 0 (
     echo CMake configuration failed.
     exit /b 1

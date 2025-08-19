@@ -11,7 +11,7 @@
 enum class ButtonCategory { NUMBER, OPERATOR, FUNCTION, CONTROL, SPECIAL };
 
 // Button category mapping
-static std::unordered_map<int, ButtonCategory> buttonCategories = {
+static const std::unordered_map<int, ButtonCategory> buttonCategories = {
     // Numbers
     {'0', ButtonCategory::NUMBER},
     {'1', ButtonCategory::NUMBER},
@@ -62,34 +62,29 @@ static std::unordered_map<int, ButtonCategory> buttonCategories = {
 std::vector<Button> CreateButtons(int btnW, int btnH, int margin, int topOffset,
                                   int leftOffset, const Font& font) {
     // Define button labels and their corresponding IDs in a grid layout
-    std::vector<std::vector<std::pair<std::string, int>>> layout = {
+    const std::vector<std::vector<std::pair<std::string, int>>> layout = {
         {{"sin", 110}, {"cos", 111}, {"tan", 112}, {"log", 113}, {"ln", 114}},
         {{"<-", 102}, {"sqrt", 116}, {"x^y", '^'}, {"(", '('}, {")", ')'}},
         {{"7", '7'}, {"8", '8'}, {"9", '9'}, {"/", '/'}, {"*", '*'}},
         {{"4", '4'}, {"5", '5'}, {"6", '6'}, {"-", '-'}, {"+", '+'}},
         {{"1", '1'}, {"2", '2'}, {"3", '3'}, {"0", '0'}, {".", '.'}},
-        {{"+-", 103}, {"ANS", 205}, {"=", '='}, {"T", 100}, {"C", 101}}};
+        {{"+/-", 103}, {"ANS", 205}, {"=", '='}, {"Theme", 100}, {"C", 101}}};
 
     std::vector<Button> buttons;
-    for (size_t row = 0; row < layout.size(); ++row) {
-        for (size_t col = 0; col < layout[row].size(); ++col) {
-            Button btn;
-            // Set button position and size
-            btn.rect  = {static_cast<float>(leftOffset + col * (btnW + margin)),
-                         static_cast<float>(topOffset + row * (btnH + margin)),
-                         static_cast<float>(btnW), static_cast<float>(btnH)};
-            btn.label = layout[row][col].first;
-            btn.id    = layout[row][col].second;
-            btn.texture = nullptr;  // Initialize texture pointer to nullptr
-            // Adjust font size based on label length
-            btn.fontSize = btn.label.length() > 2
-                               ? 16
-                               : (btn.label.length() > 1 ? 18 : 22);
-            btn.labelSize =
-                MeasureTextEx(font, btn.label.c_str(),
-                              static_cast<float>(btn.fontSize), 0.0f);
-            buttons.push_back(btn);
+    buttons.reserve(30);  // Pre-allocate memory for efficiency
+
+    int row_num = 0;
+    for (const auto& row : layout) {
+        int col_num = 0;
+        for (const auto& btn_info : row) {
+            Rectangle rect = {
+                static_cast<float>(leftOffset + col_num * (btnW + margin)),
+                static_cast<float>(topOffset + row_num * (btnH + margin)),
+                static_cast<float>(btnW), static_cast<float>(btnH)};
+            buttons.emplace_back(rect, btn_info.first, btn_info.second, font);
+            col_num++;
         }
+        row_num++;
     }
     return buttons;
 }
@@ -122,7 +117,7 @@ void DrawButtons(const std::vector<Button>& buttons, const Font& font,
     for (const auto& btn : buttons) {
         // Get button category
         ButtonCategory category = buttonCategories.count(btn.id)
-                                      ? buttonCategories[btn.id]
+                                      ? buttonCategories.at(btn.id)
                                       : ButtonCategory::NUMBER;
 
         // Determine button color based on category and theme
