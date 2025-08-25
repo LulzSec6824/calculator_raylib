@@ -23,7 +23,8 @@ double PerformanceMetrics::getFrameTime() const { return frameTime; }
 double PerformanceMetrics::getAvgFrameTime() const { return avgFrameTime; }
 
 std::string PerformanceMetrics::getPerformanceInfo() const {
-    return "FPS: " + std::to_string(getFPS()) +
-           " | Frame: " + std::to_string(frameTime) +
-           " ms | Avg: " + std::to_string(avgFrameTime) + " ms";
+    char buffer[128];
+    snprintf(buffer, sizeof(buffer), "FPS: %d | Frame: %.2f ms | Avg: %.2f ms",
+             getFPS(), frameTime, avgFrameTime);
+    return buffer;
 }

@@ -13,12 +13,12 @@ std::unique_ptr<double> MathParser::evaluate(const std::string& expression) {
     }
 
     try {
-        auto tokens = tokenize(expression);
+        std::vector<std::string> tokens = tokenize(expression);
         if (tokens.empty()) {
             throw std::runtime_error("Invalid expression format");
         }
 
-        auto rpn = toRPN(tokens);
+        std::vector<std::string> rpn = toRPN(tokens);
         return std::unique_ptr<double>(new double(computeRPN(rpn)));
     } catch (const std::exception& e) {
         // Re-throw with more context if needed
@@ -29,11 +29,11 @@ std::unique_ptr<double> MathParser::evaluate(const std::string& expression) {
 std::vector<std::string> MathParser::tokenize(const std::string& expr) {
     std::vector<std::string> tokens;
     std::string token;
-    size_t i = 0;
+    std::size_t i = 0;
 
     while (i < expr.length()) {
         if (std::isspace(expr[i])) {
-            i++;
+            ++i;
             continue;
         }
 
@@ -42,7 +42,7 @@ std::vector<std::string> MathParser::tokenize(const std::string& expr) {
             std::string func;
             while (i < expr.length() && std::isalpha(expr[i])) {
                 func += expr[i];
-                i++;
+                ++i;
             }
             tokens.push_back(func);
             continue;
@@ -54,7 +54,7 @@ std::vector<std::string> MathParser::tokenize(const std::string& expr) {
             while (i < expr.length() &&
                    (std::isdigit(expr[i]) || expr[i] == '.')) {
                 num += expr[i];
-                i++;
+                ++i;
             }
             tokens.push_back(num);
             continue;
@@ -63,11 +63,11 @@ std::vector<std::string> MathParser::tokenize(const std::string& expr) {
         // Single character operators and parentheses
         if (std::string("+-*/^()").find(expr[i]) != std::string::npos) {
             tokens.push_back(std::string(1, expr[i]));
-            i++;
+            ++i;
             continue;
         }
 
-        i++;
+        ++i;
     }
 
     return tokens;
@@ -77,7 +77,8 @@ std::vector<std::string> MathParser::toRPN(
     const std::vector<std::string>& tokens) {
     std::vector<std::string> output;
     std::stack<std::string> opStack;
-    for (const auto& token : tokens) {
+
+    for (const std::string& token : tokens) {
         if (isNumber(token)) {
             output.push_back(token);
         } else if (isFunction(token)) {
@@ -103,16 +104,19 @@ std::vector<std::string> MathParser::toRPN(
             }
         }
     }
+
     while (!opStack.empty()) {
         output.push_back(opStack.top());
         opStack.pop();
     }
+
     return output;
 }
 
 double MathParser::computeRPN(const std::vector<std::string>& rpn) {
     std::stack<double> stack;
-    for (const auto& token : rpn) {
+
+    for (const std::string& token : rpn) {
         if (isNumber(token)) {
             stack.push(std::stod(token));
         } else if (isOperator(token)) {
@@ -133,6 +137,7 @@ double MathParser::computeRPN(const std::vector<std::string>& rpn) {
             stack.push(applyFunction(a, token));
         }
     }
+
     if (stack.empty()) {
         throw std::runtime_error("Empty expression");
     }

@@ -4,7 +4,7 @@ Display::Display(Rectangle box, Font displayFont)
     : displayBox(box), font(displayFont), maxTextWidth(box.width - 40) {}
 
 void Display::draw(const CalculatorState& calc, const Theme& theme,
-                   [[maybe_unused]] const std::string& perfInfo) {
+                   const std::string& perfInfo) {
     // Get theme colors based on current mode
     Color displayColor = theme.getDisplayColor(calc.isDarkMode);
     Color textColor    = theme.getTextColor(calc.isDarkMode);
@@ -23,15 +23,16 @@ void Display::draw(const CalculatorState& calc, const Theme& theme,
     Vector2 dispSize = MeasureTextEx(font, dispToDraw.c_str(), dispFontSize, 0);
 
     // Display history with optimized positioning
-    const float historyStartY     = displayBox.y + 10;
-    const float historyLineHeight = 25;
-    const float historyX          = displayBox.x + 10;
+    const float historyStartY     = displayBox.y + 10.0f;
+    const float historyLineHeight = 25.0f;
+    const float historyX          = displayBox.x + 10.0f;
 
     // Draw history entries
     float currentY = historyStartY;
-    for (const auto& entry : calc.history) {
-        DrawTextEx(font, entry.c_str(), {historyX, currentY}, historyFontSize,
-                   0, historyColor);
+    for (std::vector<std::string>::const_iterator it = calc.history.begin();
+         it != calc.history.end(); ++it) {
+        DrawTextEx(font, it->c_str(), Vector2{historyX, currentY},
+                   historyFontSize, 0, historyColor);
         currentY += historyLineHeight;
     }
 
@@ -40,31 +41,32 @@ void Display::draw(const CalculatorState& calc, const Theme& theme,
         std::string errorToDraw = truncateToFit("Error: " + calc.errorMessage,
                                                 exprFontSize, maxTextWidth);
 
-        float errorX = displayBox.x + 30;
-        float errorY = displayBox.y + displayBox.height - 60;
-        DrawTextEx(font, errorToDraw.c_str(), {errorX, errorY}, exprFontSize, 0,
-                   RED);
+        float errorX = displayBox.x + 30.0f;
+        float errorY = displayBox.y + displayBox.height - 60.0f;
+        DrawTextEx(font, errorToDraw.c_str(), Vector2{errorX, errorY},
+                   exprFontSize, 0, RED);
     }
 
     // Calculate display position
-    const float dispX = displayBox.x + displayBox.width - dispSize.x - 30;
-    const float dispY = displayBox.y + displayBox.height - dispSize.y - 30;
+    const float dispX = displayBox.x + displayBox.width - dispSize.x - 30.0f;
+    const float dispY = displayBox.y + displayBox.height - dispSize.y - 30.0f;
 
     // Draw the display text
-    DrawTextEx(font, dispToDraw.c_str(), {dispX, dispY}, dispFontSize, 0,
+    DrawTextEx(font, dispToDraw.c_str(), Vector2{dispX, dispY}, dispFontSize, 0,
                textColor);
 
     // Display performance info only in debug builds
 #ifndef RELEASE_BUILD
-    DrawTextEx(font, perfInfo.c_str(),
-               {displayBox.x + 10, displayBox.y + displayBox.height - 30},
-               statusFontSize, 0, fadedColor);
+    DrawTextEx(
+        font, perfInfo.c_str(),
+        Vector2{displayBox.x + 10.0f, displayBox.y + displayBox.height - 30.0f},
+        statusFontSize, 0, fadedColor);
 
     // Display mode indicator
     const char* modeText = calc.isDarkMode ? "Dark Mode" : "Light Mode";
     DrawTextEx(font, modeText,
-               {displayBox.x + displayBox.width - 100,
-                displayBox.y + displayBox.height - 30},
+               Vector2{displayBox.x + displayBox.width - 100.0f,
+                       displayBox.y + displayBox.height - 30.0f},
                statusFontSize, 0, fadedColor);
 #endif
 }

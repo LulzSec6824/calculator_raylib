@@ -30,14 +30,14 @@ int main() {
     const int btnW             = 65;
 
     // Calculate total calculator width and height
-    const auto calculatorWidth  = 5 * btnW + 4 * buttonSpacing;
-    const auto calculatorHeight = displayBoxHeight + buttonSpacing +
-                                  buttonRows * buttonHeight +
-                                  (buttonRows - 1) * buttonSpacing;
+    const int calculatorWidth  = 5 * btnW + 4 * buttonSpacing;
+    const int calculatorHeight = displayBoxHeight + buttonSpacing +
+                                 buttonRows * buttonHeight +
+                                 (buttonRows - 1) * buttonSpacing;
 
     // Window and UI layout setup
-    const auto screenWidth  = calculatorWidth + 2 * sidePadding;
-    const auto screenHeight = calculatorHeight + 2 * buttonSpacing;
+    const int screenWidth  = calculatorWidth + 2 * sidePadding;
+    const int screenHeight = calculatorHeight + 2 * buttonSpacing;
     InitWindow(screenWidth, screenHeight, "Scientific Calculator");
 
 // Load embedded resources instead of from files
@@ -56,24 +56,24 @@ int main() {
     SetTextureFilter(font.texture, TEXTURE_FILTER_BILINEAR);
 
     // Calculate offsets
-    const auto topPadding = buttonSpacing;
-    const auto leftOffset = sidePadding;
+    const int topPadding = buttonSpacing;
+    const int leftOffset = sidePadding;
 
-    const auto displayBoxY = topPadding;
-    const auto topOffset   = displayBoxY + displayBoxHeight + buttonSpacing;
+    const int displayBoxY = topPadding;
+    const int topOffset   = displayBoxY + displayBoxHeight + buttonSpacing;
 
     // Calculator state and button setup
     CalculatorState calc;
-    auto buttons = CreateButtons(btnW, buttonHeight, buttonSpacing, topOffset,
-                                 leftOffset, font);
+    std::vector<Button> buttons = CreateButtons(
+        btnW, buttonHeight, buttonSpacing, topOffset, leftOffset, font);
 
     // Initialize theme
     Theme theme;
 
     // These values are constant, so they can be calculated once outside the
     // loop
-    const auto displayBoxWidth = calculatorWidth;
-    const auto displayBoxX     = leftOffset;
+    const int displayBoxWidth  = calculatorWidth;
+    const int displayBoxX      = leftOffset;
     const Rectangle displayBox = {static_cast<float>(displayBoxX),
                                   static_cast<float>(displayBoxY),
                                   static_cast<float>(displayBoxWidth),
@@ -89,14 +89,14 @@ int main() {
 #endif
 
         Vector2 mouse = GetMousePosition();
-        auto clicked  = -1;
+        int clicked   = -1;
 
         // Only check for button clicks if mouse button is pressed
         // (optimization)
         if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
             // Detect button click - only check buttons that could be under the
             // mouse
-            for (const auto& btn : buttons) {
+            for (const Button& btn : buttons) {
                 if (CheckCollisionPointRec(mouse, btn.rect)) {
                     clicked = btn.id;
                     break;

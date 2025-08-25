@@ -1,8 +1,8 @@
 #include "../includes/button.h"
 
 #include <cmath>
+#include <map>
 #include <string>
-#include <unordered_map>
 #include <vector>
 
 #include "../raylib/src/raylib.h"
@@ -11,7 +11,7 @@
 enum class ButtonCategory { NUMBER, OPERATOR, FUNCTION, CONTROL, SPECIAL };
 
 // Button category mapping
-static const std::unordered_map<int, ButtonCategory> buttonCategories = {
+static const std::map<int, ButtonCategory> buttonCategories = {
     // Numbers
     {'0', ButtonCategory::NUMBER},
     {'1', ButtonCategory::NUMBER},
@@ -61,8 +61,11 @@ static const std::unordered_map<int, ButtonCategory> buttonCategories = {
 // layout
 std::vector<Button> CreateButtons(int btnW, int btnH, int margin, int topOffset,
                                   int leftOffset, const Font& font) {
+    typedef std::vector<std::pair<std::string, int>> ButtonRow;
+    typedef std::vector<ButtonRow> ButtonLayout;
+
     // Define button labels and their corresponding IDs in a grid layout
-    const std::vector<std::vector<std::pair<std::string, int>>> layout = {
+    const ButtonLayout layout = {
         {{"sin", 110}, {"cos", 111}, {"tan", 112}, {"log", 113}, {"ln", 114}},
         {{"<-", 102}, {"sqrt", 116}, {"x^y", '^'}, {"(", '('}, {")", ')'}},
         {{"7", '7'}, {"8", '8'}, {"9", '9'}, {"/", '/'}, {"*", '*'}},
@@ -73,18 +76,15 @@ std::vector<Button> CreateButtons(int btnW, int btnH, int margin, int topOffset,
     std::vector<Button> buttons;
     buttons.reserve(30);  // Pre-allocate memory for efficiency
 
-    int row_num = 0;
-    for (const auto& row : layout) {
-        int col_num = 0;
-        for (const auto& btn_info : row) {
+    for (size_t row = 0; row < layout.size(); ++row) {
+        for (size_t col = 0; col < layout[row].size(); ++col) {
             Rectangle rect = {
-                static_cast<float>(leftOffset + col_num * (btnW + margin)),
-                static_cast<float>(topOffset + row_num * (btnH + margin)),
+                static_cast<float>(leftOffset + col * (btnW + margin)),
+                static_cast<float>(topOffset + row * (btnH + margin)),
                 static_cast<float>(btnW), static_cast<float>(btnH)};
-            buttons.emplace_back(rect, btn_info.first, btn_info.second, font);
-            col_num++;
+            buttons.emplace_back(rect, layout[row][col].first,
+                                 layout[row][col].second, font);
         }
-        row_num++;
     }
     return buttons;
 }
@@ -92,101 +92,91 @@ std::vector<Button> CreateButtons(int btnW, int btnH, int margin, int topOffset,
 // Draws all calculator buttons and highlights the one under the mouse cursor
 void DrawButtons(const std::vector<Button>& buttons, const Font& font,
                  Vector2 mouse, const bool isDarkMode) {
-    // Theme colors for buttons
-    const Color numberBgLight = {240, 240, 240, 255};
-    const Color numberBgDark  = {60, 60, 60, 255};
+    struct ThemeColors {
+        Color numberBg;
+        Color operatorBg;
+        Color functionBg;
+        Color controlBg;
+        Color specialBg;
+        Color hover;
+        Color text;
+    };
 
-    const Color operatorBgLight = {230, 230, 250, 255};  // Lavender
-    const Color operatorBgDark  = {70, 70, 90, 255};
+    const ThemeColors lightTheme = {
+        {240, 240, 240, 255},  // numberBg
+        {230, 230, 250, 255},  // operatorBg (Lavender)
+        {230, 250, 230, 255},  // functionBg (Light green)
+        {250, 230, 230, 255},  // controlBg (Light red)
+        {250, 250, 210, 255},  // specialBg (Light yellow)
+        {173, 216, 230, 255},  // hover (Light blue)
+        BLACK                  // text
+    };
 
-    const Color functionBgLight = {230, 250, 230, 255};  // Light green
-    const Color functionBgDark  = {50, 80, 50, 255};
+    const ThemeColors darkTheme = {
+        {60, 60, 60, 255},     // numberBg
+        {70, 70, 90, 255},     // operatorBg
+        {50, 80, 50, 255},     // functionBg
+        {80, 50, 50, 255},     // controlBg
+        {90, 90, 40, 255},     // specialBg
+        {100, 149, 237, 255},  // hover (Cornflower blue)
+        WHITE                  // text
+    };
 
-    const Color controlBgLight = {250, 230, 230, 255};  // Light red
-    const Color controlBgDark  = {80, 50, 50, 255};
+    const ThemeColors& theme = isDarkMode ? darkTheme : lightTheme;
 
-    const Color specialBgLight = {250, 250, 210, 255};  // Light yellow
-    const Color specialBgDark  = {90, 90, 40, 255};
-
-    const Color hoverLight = {173, 216, 230, 255};  // Light blue
-    const Color hoverDark  = {100, 149, 237, 255};  // Cornflower blue
-
-    const Color textLight = BLACK;
-    const Color textDark  = WHITE;
-
-    for (const auto& btn : buttons) {
-        // Get button category
+    for (const Button& btn : buttons) {
         ButtonCategory category = buttonCategories.count(btn.id)
                                       ? buttonCategories.at(btn.id)
                                       : ButtonCategory::NUMBER;
 
-        // Determine button color based on category and theme
-        Color btnColor;
-        Color textColor;
-
-        // Check if button is being hovered
         bool isHovered = CheckCollisionPointRec(mouse, btn.rect);
-
-        if (isHovered) {
-            btnColor = isDarkMode ? hoverDark : hoverLight;
-        } else {
-            // Select color based on button category and theme
+        Color btnColor = isHovered ? theme.hover : [&]() {
             switch (category) {
                 case ButtonCategory::NUMBER:
-                    btnColor = isDarkMode ? numberBgDark : numberBgLight;
-                    break;
+                    return theme.numberBg;
                 case ButtonCategory::OPERATOR:
-                    btnColor = isDarkMode ? operatorBgDark : operatorBgLight;
-                    break;
+                    return theme.operatorBg;
                 case ButtonCategory::FUNCTION:
-                    btnColor = isDarkMode ? functionBgDark : functionBgLight;
-                    break;
+                    return theme.functionBg;
                 case ButtonCategory::CONTROL:
-                    btnColor = isDarkMode ? controlBgDark : controlBgLight;
-                    break;
+                    return theme.controlBg;
                 case ButtonCategory::SPECIAL:
-                    btnColor = isDarkMode ? specialBgDark : specialBgLight;
-                    break;
+                    return theme.specialBg;
+                default:
+                    return theme.numberBg;
             }
-        }
-
-        textColor = isDarkMode ? textDark : textLight;
+        }();
 
         // Draw button with rounded corners
         DrawRectangleRounded(btn.rect, 0.3f, 0, btnColor);
         DrawRectangleRoundedLines(btn.rect, 0.3f, 0,
                                   isHovered ? DARKGRAY : GRAY);
 
-        // If button has a texture, draw it instead of text
         if (btn.texture != nullptr) {
-            // Calculate scaling to fit the texture within the button while
-            // maintaining aspect ratio
-            float scale = fmin((btn.rect.width - 10) / btn.texture->width,
-                               (btn.rect.height - 10) / btn.texture->height);
+            float scale =
+                std::min((btn.rect.width - 10.0f) / btn.texture->width,
+                         (btn.rect.height - 10.0f) / btn.texture->height);
 
-            // Calculate position to center the texture in the button
-            float textureWidth  = btn.texture->width * scale;
-            float textureHeight = btn.texture->height * scale;
-            Vector2 texturePos  = {
-                btn.rect.x + (btn.rect.width - textureWidth) / 2,
-                btn.rect.y + (btn.rect.height - textureHeight) / 2};
+            Vector2 texturePos = {
+                btn.rect.x +
+                    (btn.rect.width - btn.texture->width * scale) * 0.5f,
+                btn.rect.y +
+                    (btn.rect.height - btn.texture->height * scale) * 0.5f};
 
-            // Draw the texture with appropriate tint based on dark mode
-            Color tintColor = isDarkMode ? DARKGRAY : WHITE;
-            DrawTextureEx(*btn.texture, texturePos, 0.0f, scale, tintColor);
+            DrawTextureEx(*btn.texture, texturePos, 0.0f, scale,
+                          isDarkMode ? DARKGRAY : WHITE);
         } else {
-            // Draw text label for buttons without texture, using pre-calculated
-            // size
-            DrawTextEx(font, btn.label.c_str(),
-                       {btn.rect.x + (btn.rect.width - btn.labelSize.x) / 2,
-                        btn.rect.y + (btn.rect.height - btn.labelSize.y) / 2},
-                       static_cast<float>(btn.fontSize), 0, textColor);
+            Vector2 textPos = {
+                btn.rect.x + (btn.rect.width - btn.labelSize.x) * 0.5f,
+                btn.rect.y + (btn.rect.height - btn.labelSize.y) * 0.5f};
 
-            // Add a subtle 3D effect for buttons
+            DrawTextEx(font, btn.label.c_str(), textPos,
+                       static_cast<float>(btn.fontSize), 0, theme.text);
+
             if (!isHovered) {
-                DrawRectangleLinesEx({btn.rect.x + 1, btn.rect.y + 1,
-                                      btn.rect.width - 2, btn.rect.height - 2},
-                                     1, Fade(WHITE, 0.3f));
+                Rectangle innerRect = {btn.rect.x + 1, btn.rect.y + 1,
+                                       btn.rect.width - 2, btn.rect.height - 2};
+                DrawRectangleLinesEx(innerRect, 1, Fade(WHITE, 0.3f));
             }
         }
     }
