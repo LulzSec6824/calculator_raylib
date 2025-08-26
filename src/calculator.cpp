@@ -114,61 +114,90 @@ void HandleButtonPress(CalculatorState& state, int clicked) {
                 return;
             }
 
+            if (!state.expression.empty()) {
+                // Enhanced backspace logic to remove trailing functions or
+                // numbers
+                bool found = false;
+                // Try to match and remove a function name
+                static const std::array<std::string, 11> functions = {
+                    "sin(",  "cos(", "tan(",  "log(",  "ln(",  "exp(",
+                    "sqrt(", "hyp(", "asin(", "acos(", "atan("};
+                for (const auto& func : functions) {
+                    if (state.expression.size() >= func.size() &&
+                        state.expression.substr(state.expression.size() -
+                                                func.size()) == func) {
+                        state.expression.erase(state.expression.size() -
+                                               func.size());
+                        found = true;
+                        break;
+                    }
+                }
+
+                // If not a function, remove the last character
+                if (!found) {
+                    state.expression.pop_back();
+                }
+            }
+
+            // Also update the display
             if (!state.display.empty() && state.display != "0") {
                 state.display.pop_back();
                 if (state.display.empty()) {
                     state.display = "0";
                 }
-            } else if (!state.expression.empty()) {
-                state.expression.pop_back();
             }
+
             return;
         }
         case 103: {  // +/-
-            if (state.display != "0" && !state.display.empty()) {
-                auto old_display  = state.display;
-                bool was_negative = (old_display[0] == '-');
+            if (state.justEvaluated) {
+                state.lastResult    = -state.lastResult;
+                state.display       = FormatNumber(state.lastResult);
+                state.expression    = state.display;
+                state.justEvaluated = false;
+                return;
+            }
 
-                if (was_negative) {
-                    state.display.erase(0, 1);
-                } else {
-                    state.display.insert(0, 1, '-');
+            if (state.expression.empty()) return;
+
+            // Find where the last number starts
+            size_t lastNumStart = 0;
+            for (size_t i = state.expression.length() - 1; i != (size_t)-1;
+                 --i) {
+                if (strchr("()+-*/^", state.expression[i])) {
+                    lastNumStart = i + 1;
+                    break;
                 }
+            }
 
-                if (state.justEvaluated) {
-                    state.expression    = state.display;
-                    state.justEvaluated = false;
-                    return;
-                }
+            std::string lastNumStr = state.expression.substr(lastNumStart);
+            if (lastNumStr.empty()) return;
 
-                auto to_replace = old_display;
-                if (was_negative) {
-                    auto expr_size = state.expression.size();
-                    auto old_size  = old_display.size();
-                    if (expr_size >= old_size + 2 &&
-                        state.expression.substr(expr_size - (old_size + 2)) ==
-                            "(" + old_display + ")") {
-                        to_replace = "(" + old_display + ")";
+            // Case 1: Number is parenthesized, e.g., "(-6)". Toggle to "6".
+            if (lastNumStr.length() > 2 && lastNumStr.front() == '(' &&
+                lastNumStr.back() == ')') {
+                std::string positiveNum =
+                    lastNumStr.substr(2, lastNumStr.length() - 3);
+                state.expression.replace(lastNumStart, lastNumStr.length(),
+                                         positiveNum);
+                state.display = positiveNum;
+            } else {  // Case 2: Number is not parenthesized. Toggle its sign.
+                double lastNum        = std::stod(lastNumStr);
+                lastNum               = -lastNum;
+                std::string newNumStr = FormatNumber(lastNum);
+
+                // Wrap with parentheses if it's negative and follows another
+                // number/operator
+                if (lastNum < 0 && lastNumStart > 0) {
+                    char prevChar = state.expression[lastNumStart - 1];
+                    if (prevChar != '(') {
+                        newNumStr = "(" + newNumStr + ")";
                     }
                 }
 
-                if (state.expression.size() >= to_replace.size() &&
-                    state.expression.substr(state.expression.size() -
-                                            to_replace.size()) == to_replace) {
-                    state.expression.resize(state.expression.size() -
-                                            to_replace.size());
-
-                    auto to_append = state.display;
-                    if (!was_negative && !state.expression.empty()) {
-                        char last_char = state.expression.back();
-                        if (last_char == '+' || last_char == '-' ||
-                            last_char == '*' || last_char == '/' ||
-                            last_char == '^') {
-                            to_append = "(" + state.display + ")";
-                        }
-                    }
-                    state.expression += to_append;
-                }
+                state.expression.replace(lastNumStart, lastNumStr.length(),
+                                         newNumStr);
+                state.display = FormatNumber(lastNum);
             }
             return;
         }
