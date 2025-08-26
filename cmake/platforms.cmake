@@ -1,7 +1,9 @@
+# Initialize platform flags
 set(IS_WINDOWS FALSE)
 set(IS_MACOS FALSE)
 set(IS_LINUX FALSE)
 
+# Detect platform
 if(WIN32)
     set(IS_WINDOWS TRUE)
 elseif(APPLE)
@@ -10,15 +12,11 @@ elseif(UNIX AND NOT APPLE)
     set(IS_LINUX TRUE)
 endif()
 
+# Include platform-specific CMake files
 if(IS_WINDOWS)
-    add_definitions(-D_CRT_SECURE_NO_WARNINGS)
-    add_definitions(-D_USE_MATH_DEFINES)
-endif()
-
-if(IS_MACOS)
-    if(IS_CLANG)
-        set_target_properties(${PROJECT_NAME} PROPERTIES
-            XCODE_ATTRIBUTE_CLANG_ENABLE_OBJC_ARC YES
-        )
-    endif()
+    include(${CMAKE_CURRENT_LIST_DIR}/windows.cmake)
+elseif(IS_MACOS)
+    include(${CMAKE_CURRENT_LIST_DIR}/macos.cmake)
+elseif(IS_LINUX)
+    include(${CMAKE_CURRENT_LIST_DIR}/linux.cmake)
 endif()

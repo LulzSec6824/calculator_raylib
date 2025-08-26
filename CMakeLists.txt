@@ -8,7 +8,6 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 add_subdirectory(raylib)
 
 include(cmake/platforms.cmake)
-include(cmake/compilers.cmake)
 include(cmake/resources.cmake)
 
 if(IS_WINDOWS)
