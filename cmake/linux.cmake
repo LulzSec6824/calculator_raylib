@@ -3,7 +3,6 @@ if(COMPILER_IS_CLANG)
     # Base flags for both C and C++
     set(BASE_FLAGS "-Wall -Wextra -Wpedantic -Werror -fPIC -pipe")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${BASE_FLAGS}")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${BASE_FLAGS} -std=c++11")
 
     # Optimization options
     option(USE_NATIVE_ARCH "Use -march=native for Clang (may not be portable)" ON)
@@ -42,7 +41,6 @@ elseif(COMPILER_IS_GCC)
     # Base flags for both C and C++
     set(BASE_FLAGS "-Wall -Wextra -Wpedantic -Werror -fPIC -pipe")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${BASE_FLAGS}")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${BASE_FLAGS} -std=c++11")
 
     # Debug configuration
     set(CMAKE_C_FLAGS_DEBUG "-g3 -O0 ${BASE_FLAGS} -fno-omit-frame-pointer -fsanitize=address,undefined")

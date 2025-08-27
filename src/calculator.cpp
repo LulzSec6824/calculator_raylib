@@ -1,7 +1,9 @@
 #include "../includes/calculator.h"
 
 #include <algorithm>
+#include <array>
 #include <cmath>
+#include <cstring>
 #include <iomanip>
 #include <sstream>
 
@@ -35,6 +37,9 @@ std::string FormatNumber(double value, int precision = 10) {
 
 // Handles all button press events and updates calculator state accordingly
 void HandleButtonPress(CalculatorState& state, int clicked) {
+    static const std::array<std::string, 11> functions = {
+        "sin(",  "cos(", "tan(",  "log(",  "ln(",  "exp(",
+        "sqrt(", "hyp(", "asin(", "acos(", "atan("};
     // Clear error state when any button is pressed
     if (state.errorState) {
         state.errorState = false;
@@ -119,9 +124,6 @@ void HandleButtonPress(CalculatorState& state, int clicked) {
                 // numbers
                 bool found = false;
                 // Try to match and remove a function name
-                static const std::array<std::string, 11> functions = {
-                    "sin(",  "cos(", "tan(",  "log(",  "ln(",  "exp(",
-                    "sqrt(", "hyp(", "asin(", "acos(", "atan("};
                 for (const auto& func : functions) {
                     if (state.expression.size() >= func.size() &&
                         state.expression.substr(state.expression.size() -
@@ -217,10 +219,7 @@ void HandleButtonPress(CalculatorState& state, int clicked) {
                 state.justEvaluated = false;
             }
 
-            static const std::array<std::string, 11> functions = {
-                "sin(",  "cos(", "tan(",  "log(",  "ln(",  "exp(",
-                "sqrt(", "hyp(", "asin(", "acos(", "atan("};
-            append = functions[clicked - 110];
+            append = functions[static_cast<size_t>(clicked - 110)];
             break;
         }
         case 205: {  // ANS button
