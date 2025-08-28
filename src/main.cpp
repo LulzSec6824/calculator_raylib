@@ -52,7 +52,7 @@ int main() {
 #endif
 
     SetWindowIcon(icon);
-    SetTargetFPS(50000);
+    SetTargetFPS(60);
     SetTextureFilter(font.texture, TEXTURE_FILTER_BILINEAR);
 
     // Calculate offsets
