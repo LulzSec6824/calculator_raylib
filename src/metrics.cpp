@@ -2,9 +2,6 @@
 
 #include <cstdio>
 
-PerformanceMetrics::PerformanceMetrics()
-    : frameTime(0.0), frameCount(0), avgFrameTime(0.0) {}
-
 void PerformanceMetrics::startFrame() {
     frameStart = std::chrono::high_resolution_clock::now();
 }
@@ -26,8 +23,8 @@ double PerformanceMetrics::getFrameTime() const { return frameTime; }
 double PerformanceMetrics::getAvgFrameTime() const { return avgFrameTime; }
 
 std::string PerformanceMetrics::getPerformanceInfo() const {
-    char perfInfo[64];
-    sprintf(perfInfo, "FPS: %d | Frame: %.2f ms | Avg: %.2f ms", getFPS(),
-            frameTime, avgFrameTime);
-    return std::string(perfInfo);
+    char buffer[128];
+    snprintf(buffer, sizeof(buffer), "FPS: %d | Frame: %.2f ms | Avg: %.2f ms",
+             getFPS(), frameTime, avgFrameTime);
+    return buffer;
 }

@@ -1,24 +1,26 @@
 #include "../includes/parser.h"
 
 #include <cmath>
+#include <cstdlib>
+#include <memory>
 #include <stdexcept>
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
 #endif
 
-double MathParser::evaluate(const std::string& expression) {
+std::unique_ptr<double> MathParser::evaluate(const std::string& expression) {
     if (expression.empty()) {
         throw std::runtime_error("Empty expression");
     }
 
     try {
-        auto tokens = tokenize(expression);
+        std::vector<std::string> tokens = tokenize(expression);
         if (tokens.empty()) {
             throw std::runtime_error("Invalid expression format");
         }
 
-        auto rpn = toRPN(tokens);
-        return computeRPN(rpn);
+        std::vector<std::string> rpn = toRPN(tokens);
+        return std::unique_ptr<double>(new double(computeRPN(rpn)));
     } catch (const std::exception& e) {
         // Re-throw with more context if needed
         throw std::runtime_error(std::string("Calculation error: ") + e.what());
@@ -27,48 +29,41 @@ double MathParser::evaluate(const std::string& expression) {
 
 std::vector<std::string> MathParser::tokenize(const std::string& expr) {
     std::vector<std::string> tokens;
-    std::string token;
-    size_t i = 0;
+    for (size_t i = 0; i < expr.length(); ++i) {
+        char c = expr[i];
+        if (isspace(c)) continue;
 
-    while (i < expr.length()) {
-        if (std::isspace(expr[i])) {
+        if (c == '-' && (tokens.empty() || tokens.back() == "(" ||
+                         isOperator(tokens.back()))) {
+            // Unary minus
+            std::string num_str = "-";
             i++;
-            continue;
-        }
-
-        // Check for function names
-        if (std::isalpha(expr[i])) {
-            std::string func;
-            while (i < expr.length() && std::isalpha(expr[i])) {
-                func += expr[i];
+            while (i < expr.length() && (isdigit(expr[i]) || expr[i] == '.')) {
+                num_str += expr[i];
                 i++;
             }
-            tokens.push_back(func);
-            continue;
-        }
-
-        // Check for numbers (including decimals)
-        if (std::isdigit(expr[i]) || expr[i] == '.') {
-            std::string num;
-            while (i < expr.length() &&
-                   (std::isdigit(expr[i]) || expr[i] == '.')) {
-                num += expr[i];
+            i--;  // Decrement because the outer loop increments
+            tokens.push_back(num_str);
+        } else if (isdigit(c) || c == '.') {
+            std::string num_str;
+            while (i < expr.length() && (isdigit(expr[i]) || expr[i] == '.')) {
+                num_str += expr[i];
                 i++;
             }
-            tokens.push_back(num);
-            continue;
+            i--;
+            tokens.push_back(num_str);
+        } else if (isalpha(c)) {
+            std::string func_str;
+            while (i < expr.length() && isalpha(expr[i])) {
+                func_str += expr[i];
+                i++;
+            }
+            i--;
+            tokens.push_back(func_str);
+        } else {
+            tokens.push_back(std::string(1, c));
         }
-
-        // Single character operators and parentheses
-        if (std::string("+-*/^()").find(expr[i]) != std::string::npos) {
-            tokens.push_back(std::string(1, expr[i]));
-            i++;
-            continue;
-        }
-
-        i++;
     }
-
     return tokens;
 }
 
@@ -76,7 +71,8 @@ std::vector<std::string> MathParser::toRPN(
     const std::vector<std::string>& tokens) {
     std::vector<std::string> output;
     std::stack<std::string> opStack;
-    for (const auto& token : tokens) {
+
+    for (const std::string& token : tokens) {
         if (isNumber(token)) {
             output.push_back(token);
         } else if (isFunction(token)) {
@@ -102,16 +98,19 @@ std::vector<std::string> MathParser::toRPN(
             }
         }
     }
+
     while (!opStack.empty()) {
         output.push_back(opStack.top());
         opStack.pop();
     }
+
     return output;
 }
 
 double MathParser::computeRPN(const std::vector<std::string>& rpn) {
     std::stack<double> stack;
-    for (const auto& token : rpn) {
+
+    for (const std::string& token : rpn) {
         if (isNumber(token)) {
             stack.push(std::stod(token));
         } else if (isOperator(token)) {
@@ -132,6 +131,7 @@ double MathParser::computeRPN(const std::vector<std::string>& rpn) {
             stack.push(applyFunction(a, token));
         }
     }
+
     if (stack.empty()) {
         throw std::runtime_error("Empty expression");
     }
@@ -139,7 +139,12 @@ double MathParser::computeRPN(const std::vector<std::string>& rpn) {
 }
 
 bool MathParser::isNumber(const std::string& token) {
-    return !token.empty() && (std::isdigit(token[0]) || token[0] == '.');
+    if (token.empty()) {
+        return false;
+    }
+    char* p;
+    strtod(token.c_str(), &p);
+    return *p == 0;
 }
 
 bool MathParser::isOperator(const std::string& token) {

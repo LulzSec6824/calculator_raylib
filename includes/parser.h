@@ -1,6 +1,7 @@
 #pragma once
 #include <cmath>
 #include <map>
+#include <memory>
 #include <sstream>
 #include <stack>
 #include <stdexcept>
@@ -9,7 +10,7 @@
 
 class MathParser {
    public:
-    double evaluate(const std::string& expression);
+    std::unique_ptr<double> evaluate(const std::string& expression);
 
    private:
     std::vector<std::string> tokenize(const std::string& expr);

@@ -52,7 +52,7 @@ int main() {
 #endif
 
     SetWindowIcon(icon);
-    SetTargetFPS(50000);
+    SetTargetFPS(60);
     SetTextureFilter(font.texture, TEXTURE_FILTER_BILINEAR);
 
     // Calculate offsets
@@ -96,12 +96,8 @@ int main() {
         if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
             // Detect button click - only check buttons that could be under the
             // mouse
-            for (const auto& btn : buttons) {
-                // Quick boundary check before detailed collision check
-                if (mouse.x >= btn.rect.x &&
-                    mouse.x <= (btn.rect.x + btn.rect.width) &&
-                    mouse.y >= btn.rect.y &&
-                    mouse.y <= (btn.rect.y + btn.rect.height)) {
+            for (const Button& btn : buttons) {
+                if (CheckCollisionPointRec(mouse, btn.rect)) {
                     clicked = btn.id;
                     break;
                 }
