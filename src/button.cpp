@@ -46,6 +46,9 @@ static const std::map<int, ButtonCategory> buttonCategories = {
     {118, ButtonCategory::FUNCTION},
     {119, ButtonCategory::FUNCTION},
     {120, ButtonCategory::FUNCTION},
+    {121, ButtonCategory::FUNCTION},
+    {122, ButtonCategory::FUNCTION},
+    {123, ButtonCategory::FUNCTION},
 
     // Control buttons
     {100, ButtonCategory::CONTROL},
@@ -61,23 +64,26 @@ static const std::map<int, ButtonCategory> buttonCategories = {
 // layout
 std::vector<Button> CreateButtons(int btnW, int btnH, int margin, int topOffset,
                                   int leftOffset, const Font& font) {
-    typedef std::vector<std::pair<std::string, int>> ButtonRow;
-    typedef std::vector<ButtonRow> ButtonLayout;
+    using ButtonRow    = std::vector<std::pair<const char*, int>>;
+    using ButtonLayout = std::array<ButtonRow, 7>;
 
     // Define button labels and their corresponding IDs in a grid layout
-    const ButtonLayout layout = {
-        {{"sin", 110}, {"cos", 111}, {"tan", 112}, {"log", 113}, {"ln", 114}},
-        {{"<-", 102}, {"sqrt", 116}, {"x^y", '^'}, {"(", '('}, {")", ')'}},
-        {{"7", '7'}, {"8", '8'}, {"9", '9'}, {"/", '/'}, {"*", '*'}},
-        {{"4", '4'}, {"5", '5'}, {"6", '6'}, {"-", '-'}, {"+", '+'}},
-        {{"1", '1'}, {"2", '2'}, {"3", '3'}, {"0", '0'}, {".", '.'}},
-        {{"+/-", 103}, {"ANS", 205}, {"=", '='}, {"Theme", 100}, {"C", 101}}};
+    // Using const char* to avoid string allocations
+    static const ButtonLayout layout = {
+        {{{"S", 121}, {"M", 122}, {"DEG", 123}, {"", 0}, {"", 0}},
+         {{"sin", 110}, {"cos", 111}, {"tan", 112}, {"log", 113}, {"ln", 114}},
+         {{"<->", 102}, {"sqrt", 116}, {"x^y", '^'}, {"(", '('}, {")", ')'}},
+         {{"7", '7'}, {"8", '8'}, {"9", '9'}, {"/", '/'}, {"*", '*'}},
+         {{"4", '4'}, {"5", '5'}, {"6", '6'}, {"-", '-'}, {"+", '+'}},
+         {{"1", '1'}, {"2", '2'}, {"3", '3'}, {"0", '0'}, {".", '.'}},
+         {{"+/-", 103}, {"ANS", 205}, {"=", '='}, {"Theme", 100}, {"C", 101}}}};
 
     std::vector<Button> buttons;
-    buttons.reserve(30);  // Pre-allocate memory for efficiency
+    buttons.reserve(35);  // Pre-allocate memory for efficiency
 
     for (size_t row = 0; row < layout.size(); ++row) {
         for (size_t col = 0; col < layout[row].size(); ++col) {
+            if (layout[row][col].second == 0) continue;
             Rectangle rect = {
                 static_cast<float>(leftOffset + col * (btnW + margin)),
                 static_cast<float>(topOffset + row * (btnH + margin)),

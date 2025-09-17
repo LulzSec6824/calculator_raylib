@@ -22,7 +22,7 @@ int main() {
 #endif
 
     // UI layout parameters
-    const int buttonRows       = 6;
+    const int buttonRows       = 7;
     const int buttonHeight     = 45;
     const int buttonSpacing    = 15;
     const int sidePadding      = buttonSpacing / 2;
@@ -52,7 +52,7 @@ int main() {
 #endif
 
     SetWindowIcon(icon);
-    SetTargetFPS(60);
+    SetTargetFPS(50000000);
     SetTextureFilter(font.texture, TEXTURE_FILTER_BILINEAR);
 
     // Calculate offsets

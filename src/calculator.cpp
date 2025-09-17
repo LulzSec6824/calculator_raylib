@@ -35,6 +35,16 @@ std::string FormatNumber(double value, int precision = 10) {
     return result;
 }
 
+void HandleMatrixInput(CalculatorState& state, int clicked) {
+    // This is a placeholder for matrix input logic
+    if (clicked == 'C') {  // Allow exiting matrix mode
+        state.matrixInputMode = false;
+        state.display         = "0";
+        return;
+    }
+    state.display += std::to_string(clicked);
+}
+
 // Handles all button press events and updates calculator state accordingly
 void HandleButtonPress(CalculatorState& state, int clicked) {
     static const std::array<std::string, 11> functions = {
@@ -46,6 +56,11 @@ void HandleButtonPress(CalculatorState& state, int clicked) {
         state.errorMessage.clear();
         state.display = "0";
         state.expression.clear();
+    }
+
+    if (state.matrixInputMode) {
+        HandleMatrixInput(state, clicked);
+        return;
     }
 
     std::string append;
@@ -222,6 +237,24 @@ void HandleButtonPress(CalculatorState& state, int clicked) {
             append = functions[static_cast<size_t>(clicked - 110)];
             break;
         }
+        case 121: {  // S - Shift
+            state.is_shiftActive = !state.is_shiftActive;
+            return;
+        }
+        case 122: {  // M - Matrix
+            if (state.is_shiftActive) {
+                state.matrixInputMode = true;
+                state.display         = "Enter matrix size (RxC)";
+                state.is_shiftActive  = false;  // Consume shift
+            } else {
+                append = "M";
+            }
+            return;
+        }
+        case 123: {  // DEG/RAD toggle
+            state.isDeg = !state.isDeg;
+            return;
+        }
         case 205: {  // ANS button
             append = FormatNumber(state.lastResult);
             break;
@@ -240,7 +273,7 @@ void HandleButtonPress(CalculatorState& state, int clicked) {
                 evalExpr.append(openParens, ')');
 
                 MathParser parser;
-                auto result    = *parser.evaluate(evalExpr);
+                auto result    = *parser.evaluate(evalExpr, state.isDeg);
                 auto resultStr = FormatNumber(result);
 
                 if (state.history.size() >= 5) {

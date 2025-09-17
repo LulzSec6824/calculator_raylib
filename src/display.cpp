@@ -5,32 +5,35 @@ Display::Display(Rectangle box, Font displayFont)
 
 void Display::draw(const CalculatorState& calc, const Theme& theme,
                    const std::string& perfInfo) {
-    // Get theme colors based on current mode
-    Color displayColor = theme.getDisplayColor(calc.isDarkMode);
-    Color textColor    = theme.getTextColor(calc.isDarkMode);
-    Color historyColor = theme.textHistory;
-    Color fadedColor   = theme.getFadedTextColor(calc.isDarkMode);
+    // Get theme colors based on current mode (const operations)
+    const Color displayColor = theme.getDisplayColor(calc.isDarkMode);
+    const Color textColor    = theme.getTextColor(calc.isDarkMode);
+    const Color historyColor = theme.textHistory;
+    const Color fadedColor   = theme.getFadedTextColor(calc.isDarkMode);
 
     // Draw display box with theme-appropriate color
     DrawRectangleRec(displayBox, displayColor);
 
     // Use the expression as the main display, fallback to display string if
     // empty
-    std::string mainDisplayString =
+    const std::string& mainDisplayString =
         calc.expression.empty() ? calc.display : calc.expression;
-    std::string dispToDraw =
+
+    const std::string dispToDraw =
         truncateToFit(mainDisplayString, dispFontSize, maxTextWidth);
-    Vector2 dispSize = MeasureTextEx(font, dispToDraw.c_str(), dispFontSize, 0);
 
-    // Display history with optimized positioning
-    const float historyStartY     = displayBox.y + 10.0f;
-    const float historyLineHeight = 25.0f;
-    const float historyX          = displayBox.x + 10.0f;
+    const Vector2 dispSize =
+        MeasureTextEx(font, dispToDraw.c_str(), dispFontSize, 0);
 
-    // Draw history entries
-    float currentY = historyStartY;
-    for (std::vector<std::string>::const_iterator it = calc.history.begin();
-         it != calc.history.end(); ++it) {
+    // Const layout parameters for better performance
+    static constexpr float historyStartY     = 10.0f;
+    static constexpr float historyLineHeight = 25.0f;
+
+    const float historyX = displayBox.x + 10.0f;
+
+    // Draw history entries with const iterator
+    float currentY = displayBox.y + historyStartY;
+    for (auto it = calc.history.cbegin(); it != calc.history.cend(); ++it) {
         DrawTextEx(font, it->c_str(), Vector2{historyX, currentY},
                    historyFontSize, 0, historyColor);
         currentY += historyLineHeight;
@@ -73,14 +76,19 @@ void Display::draw(const CalculatorState& calc, const Theme& theme,
 
 std::string Display::truncateToFit(const std::string& text, float fontSize,
                                    float maxWidth) const {
+    if (text.empty()) return text;
+
     std::string result = text;
     Vector2 size       = MeasureTextEx(font, result.c_str(), fontSize, 0);
+
     while (size.x > maxWidth && result.length() > 1) {
         result.erase(0, 1);
         size = MeasureTextEx(font, result.c_str(), fontSize, 0);
     }
-    if (result != text && result.length() > 1) {
+
+    if (result != text && !result.empty()) {
         result[0] = '.';
     }
+
     return result;
 }

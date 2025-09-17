@@ -14,7 +14,7 @@ struct Button {
     Vector2 labelSize;
 
     Button(Rectangle r, std::string l, int i, const Font& font,
-           Texture2D* tex = nullptr)
+           Texture2D* tex = nullptr) noexcept
         : rect(r),
           label(std::move(l)),
           id(i),

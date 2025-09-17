@@ -8,11 +8,11 @@
 #define M_PI 3.14159265358979323846
 #endif
 
-std::unique_ptr<double> MathParser::evaluate(const std::string& expression) {
+std::unique_ptr<double> MathParser::evaluate(const std::string& expression,
+                                             bool isDeg) {
     if (expression.empty()) {
         throw std::runtime_error("Empty expression");
     }
-
     try {
         std::vector<std::string> tokens = tokenize(expression);
         if (tokens.empty()) {
@@ -20,7 +20,7 @@ std::unique_ptr<double> MathParser::evaluate(const std::string& expression) {
         }
 
         std::vector<std::string> rpn = toRPN(tokens);
-        return std::unique_ptr<double>(new double(computeRPN(rpn)));
+        return std::unique_ptr<double>(new double(computeRPN(rpn, isDeg)));
     } catch (const std::exception& e) {
         // Re-throw with more context if needed
         throw std::runtime_error(std::string("Calculation error: ") + e.what());
@@ -107,7 +107,7 @@ std::vector<std::string> MathParser::toRPN(
     return output;
 }
 
-double MathParser::computeRPN(const std::vector<std::string>& rpn) {
+double MathParser::computeRPN(const std::vector<std::string>& rpn, bool isDeg) {
     std::stack<double> stack;
 
     for (const std::string& token : rpn) {
@@ -128,7 +128,7 @@ double MathParser::computeRPN(const std::vector<std::string>& rpn) {
             }
             double a = stack.top();
             stack.pop();
-            stack.push(applyFunction(a, token));
+            stack.push(applyFunction(a, token, isDeg));
         }
     }
 
@@ -191,22 +191,26 @@ double MathParser::applyOperator(double a, double b, const std::string& op) {
     throw std::runtime_error("Unknown operator: " + op);
 }
 
-double MathParser::applyFunction(double a, const std::string& func) {
-    // Trigonometric functions (using degrees)
+double MathParser::applyFunction(double a, const std::string& func,
+                                 bool isDeg) {
+    double angle = a;
+    if (isDeg) {
+        angle = a * M_PI / 180.0;
+    }
+
     if (func == "sin") {
-        return std::sin(a * M_PI / 180.0);  // Convert degrees to radians
+        return std::sin(angle);
     }
     if (func == "cos") {
-        return std::cos(a * M_PI / 180.0);  // Convert degrees to radians
+        return std::cos(angle);
     }
     if (func == "tan") {
-        // Check for undefined values (90°, 270°, etc.)
-        if (std::fmod(std::abs(a - 90.0), 180.0) < 1e-10) {
+        if (isDeg && std::fmod(std::abs(a - 90.0), 180.0) < 1e-10) {
             throw std::runtime_error("Tangent is undefined at " +
                                      std::to_string(static_cast<int>(a)) +
                                      " degrees");
         }
-        return std::tan(a * M_PI / 180.0);  // Convert degrees to radians
+        return std::tan(angle);
     }
 
     // Logarithmic functions
@@ -225,7 +229,6 @@ double MathParser::applyFunction(double a, const std::string& func) {
         return std::log(a);
     }
 
-    // Other functions
     if (func == "exp") {
         return std::exp(a);
     }
@@ -243,17 +246,20 @@ double MathParser::applyFunction(double a, const std::string& func) {
             throw std::runtime_error(
                 "Inverse sine argument must be between -1 and 1");
         }
-        return std::asin(a) * 180.0 / M_PI;  // Convert radians to degrees
+        double result = std::asin(a);
+        return isDeg ? result * 180.0 / M_PI : result;
     }
     if (func == "acos") {
         if (a < -1 || a > 1) {
             throw std::runtime_error(
                 "Inverse cosine argument must be between -1 and 1");
         }
-        return std::acos(a) * 180.0 / M_PI;  // Convert radians to degrees
+        double result = std::acos(a);
+        return isDeg ? result * 180.0 / M_PI : result;
     }
     if (func == "atan") {
-        return std::atan(a) * 180.0 / M_PI;  // Convert radians to degrees
+        double result = std::atan(a);
+        return isDeg ? result * 180.0 / M_PI : result;
     }
 
     // Hyperbolic functions
