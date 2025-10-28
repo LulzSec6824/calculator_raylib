@@ -12,8 +12,7 @@
 #include "../raylib/src/raylib.h"
 
 // Forward declarations
-std::vector<Button> CreateButtons(int btnW, int btnH, int margin, int topOffset,
-                                  int leftOffset, const Font& font);
+std::vector<Button> CreateButtons(int btnW, int btnH, int margin, int topOffset, int leftOffset, const Font& font);
 
 int main() {
     // Initialize performance metrics (debug builds only)
@@ -31,9 +30,7 @@ int main() {
 
     // Calculate total calculator width and height
     const int calculatorWidth  = 5 * btnW + 4 * buttonSpacing;
-    const int calculatorHeight = displayBoxHeight + buttonSpacing +
-                                 buttonRows * buttonHeight +
-                                 (buttonRows - 1) * buttonSpacing;
+    const int calculatorHeight = displayBoxHeight + buttonSpacing + buttonRows * buttonHeight + (buttonRows - 1) * buttonSpacing;
 
     // Window and UI layout setup
     const int screenWidth  = calculatorWidth + 2 * sidePadding;
@@ -64,8 +61,7 @@ int main() {
 
     // Calculator state and button setup
     CalculatorState calc;
-    std::vector<Button> buttons = CreateButtons(
-        btnW, buttonHeight, buttonSpacing, topOffset, leftOffset, font);
+    std::vector<Button> buttons = CreateButtons(btnW, buttonHeight, buttonSpacing, topOffset, leftOffset, font);
 
     // Initialize theme
     Theme theme;
@@ -74,9 +70,7 @@ int main() {
     // loop
     const int displayBoxWidth  = calculatorWidth;
     const int displayBoxX      = leftOffset;
-    const Rectangle displayBox = {static_cast<float>(displayBoxX),
-                                  static_cast<float>(displayBoxY),
-                                  static_cast<float>(displayBoxWidth),
+    const Rectangle displayBox = {static_cast<float>(displayBoxX), static_cast<float>(displayBoxY), static_cast<float>(displayBoxWidth),
                                   static_cast<float>(displayBoxHeight)};
 
     // Initialize display

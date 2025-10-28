@@ -19,11 +19,9 @@ Font LoadEmbeddedFont(void) {
     font.glyphPadding = 4;   // From font_ubuntu.h
 
     // Load texture from memory using the decompressed data
-    int fontDataSize = 0;
-    unsigned char* data =
-        DecompressData(fontData_FontUbuntu,
-                       COMPRESSED_DATA_SIZE_FONT_FONTUBUNTU, &fontDataSize);
-    Image imFont = {data, 1024, 512, 1, 2};
+    int fontDataSize    = 0;
+    unsigned char* data = DecompressData(fontData_FontUbuntu, COMPRESSED_DATA_SIZE_FONT_FONTUBUNTU, &fontDataSize);
+    Image imFont        = {data, 1024, 512, 1, 2};
 
     font.texture = LoadTextureFromImage(imFont);
     UnloadImage(imFont);  // Uncompressed data can be unloaded from memory

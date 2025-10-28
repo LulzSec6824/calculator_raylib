@@ -37,9 +37,7 @@ std::string FormatNumber(double value, int precision = 10) {
 
 // Handles all button press events and updates calculator state accordingly
 void HandleButtonPress(CalculatorState& state, int clicked) {
-    static const std::array<std::string, 11> functions = {
-        "sin(",  "cos(", "tan(",  "log(",  "ln(",  "exp(",
-        "sqrt(", "hyp(", "asin(", "acos(", "atan("};
+    static const std::array<std::string, 11> functions = {"sin(", "cos(", "tan(", "log(", "ln(", "exp(", "sqrt(", "hyp(", "asin(", "acos(", "atan("};
     // Clear error state when any button is pressed
     if (state.errorState) {
         state.errorState = false;
@@ -125,11 +123,8 @@ void HandleButtonPress(CalculatorState& state, int clicked) {
                 bool found = false;
                 // Try to match and remove a function name
                 for (const auto& func : functions) {
-                    if (state.expression.size() >= func.size() &&
-                        state.expression.substr(state.expression.size() -
-                                                func.size()) == func) {
-                        state.expression.erase(state.expression.size() -
-                                               func.size());
+                    if (state.expression.size() >= func.size() && state.expression.substr(state.expression.size() - func.size()) == func) {
+                        state.expression.erase(state.expression.size() - func.size());
                         found = true;
                         break;
                     }
@@ -164,8 +159,7 @@ void HandleButtonPress(CalculatorState& state, int clicked) {
 
             // Find where the last number starts
             size_t lastNumStart = 0;
-            for (size_t i = state.expression.length() - 1; i != (size_t)-1;
-                 --i) {
+            for (size_t i = state.expression.length() - 1; i != (size_t)-1; --i) {
                 if (strchr("()+-*/^", state.expression[i])) {
                     lastNumStart = i + 1;
                     break;
@@ -176,12 +170,9 @@ void HandleButtonPress(CalculatorState& state, int clicked) {
             if (lastNumStr.empty()) return;
 
             // Case 1: Number is parenthesized, e.g., "(-6)". Toggle to "6".
-            if (lastNumStr.length() > 2 && lastNumStr.front() == '(' &&
-                lastNumStr.back() == ')') {
-                std::string positiveNum =
-                    lastNumStr.substr(2, lastNumStr.length() - 3);
-                state.expression.replace(lastNumStart, lastNumStr.length(),
-                                         positiveNum);
+            if (lastNumStr.length() > 2 && lastNumStr.front() == '(' && lastNumStr.back() == ')') {
+                std::string positiveNum = lastNumStr.substr(2, lastNumStr.length() - 3);
+                state.expression.replace(lastNumStart, lastNumStr.length(), positiveNum);
                 state.display = positiveNum;
             } else {  // Case 2: Number is not parenthesized. Toggle its sign.
                 double lastNum        = std::stod(lastNumStr);
@@ -197,8 +188,7 @@ void HandleButtonPress(CalculatorState& state, int clicked) {
                     }
                 }
 
-                state.expression.replace(lastNumStart, lastNumStr.length(),
-                                         newNumStr);
+                state.expression.replace(lastNumStart, lastNumStr.length(), newNumStr);
                 state.display = FormatNumber(lastNum);
             }
             return;
@@ -233,10 +223,8 @@ void HandleButtonPress(CalculatorState& state, int clicked) {
                     return;
                 }
 
-                auto evalExpr = state.expression;
-                auto openParens =
-                    std::count(evalExpr.begin(), evalExpr.end(), '(') -
-                    std::count(evalExpr.begin(), evalExpr.end(), ')');
+                auto evalExpr   = state.expression;
+                auto openParens = std::count(evalExpr.begin(), evalExpr.end(), '(') - std::count(evalExpr.begin(), evalExpr.end(), ')');
                 evalExpr.append(openParens, ')');
 
                 MathParser parser;

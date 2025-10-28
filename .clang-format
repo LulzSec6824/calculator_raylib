@@ -4,3 +4,4 @@ DerivePointerAlignment: false
 IndentWidth: 4
 AlignConsecutiveAssignments: Consecutive
 Cpp11BracedListStyle: true
+ColumnLimit: 150

@@ -33,8 +33,7 @@ std::vector<std::string> MathParser::tokenize(const std::string& expr) {
         char c = expr[i];
         if (isspace(c)) continue;
 
-        if (c == '-' && (tokens.empty() || tokens.back() == "(" ||
-                         isOperator(tokens.back()))) {
+        if (c == '-' && (tokens.empty() || tokens.back() == "(" || isOperator(tokens.back()))) {
             // Unary minus
             std::string num_str = "-";
             i++;
@@ -67,8 +66,7 @@ std::vector<std::string> MathParser::tokenize(const std::string& expr) {
     return tokens;
 }
 
-std::vector<std::string> MathParser::toRPN(
-    const std::vector<std::string>& tokens) {
+std::vector<std::string> MathParser::toRPN(const std::vector<std::string>& tokens) {
     std::vector<std::string> output;
     std::stack<std::string> opStack;
 
@@ -78,8 +76,7 @@ std::vector<std::string> MathParser::toRPN(
         } else if (isFunction(token)) {
             opStack.push(token);
         } else if (isOperator(token)) {
-            while (!opStack.empty() && isOperator(opStack.top()) &&
-                   precedence(opStack.top()) >= precedence(token)) {
+            while (!opStack.empty() && isOperator(opStack.top()) && precedence(opStack.top()) >= precedence(token)) {
                 output.push_back(opStack.top());
                 opStack.pop();
             }
@@ -147,16 +144,11 @@ bool MathParser::isNumber(const std::string& token) {
     return *p == 0;
 }
 
-bool MathParser::isOperator(const std::string& token) {
-    return token == "+" || token == "-" || token == "*" || token == "/" ||
-           token == "^";
-}
+bool MathParser::isOperator(const std::string& token) { return token == "+" || token == "-" || token == "*" || token == "/" || token == "^"; }
 
 bool MathParser::isFunction(const std::string& token) {
-    return token == "sin" || token == "cos" || token == "tan" ||
-           token == "log" || token == "ln" || token == "exp" ||
-           token == "sqrt" || token == "asin" || token == "acos" ||
-           token == "atan" || token == "hyp";
+    return token == "sin" || token == "cos" || token == "tan" || token == "log" || token == "ln" || token == "exp" || token == "sqrt" ||
+           token == "asin" || token == "acos" || token == "atan" || token == "hyp";
 }
 
 int MathParser::precedence(const std::string& op) {
@@ -202,9 +194,7 @@ double MathParser::applyFunction(double a, const std::string& func) {
     if (func == "tan") {
         // Check for undefined values (90°, 270°, etc.)
         if (std::fmod(std::abs(a - 90.0), 180.0) < 1e-10) {
-            throw std::runtime_error("Tangent is undefined at " +
-                                     std::to_string(static_cast<int>(a)) +
-                                     " degrees");
+            throw std::runtime_error("Tangent is undefined at " + std::to_string(static_cast<int>(a)) + " degrees");
         }
         return std::tan(a * M_PI / 180.0);  // Convert degrees to radians
     }
@@ -212,15 +202,13 @@ double MathParser::applyFunction(double a, const std::string& func) {
     // Logarithmic functions
     if (func == "log") {
         if (a <= 0) {
-            throw std::runtime_error(
-                "Cannot compute logarithm of non-positive number");
+            throw std::runtime_error("Cannot compute logarithm of non-positive number");
         }
         return std::log10(a);
     }
     if (func == "ln") {
         if (a <= 0) {
-            throw std::runtime_error(
-                "Cannot compute natural logarithm of non-positive number");
+            throw std::runtime_error("Cannot compute natural logarithm of non-positive number");
         }
         return std::log(a);
     }
@@ -231,8 +219,7 @@ double MathParser::applyFunction(double a, const std::string& func) {
     }
     if (func == "sqrt") {
         if (a < 0) {
-            throw std::runtime_error(
-                "Cannot compute square root of negative number");
+            throw std::runtime_error("Cannot compute square root of negative number");
         }
         return std::sqrt(a);
     }
@@ -240,15 +227,13 @@ double MathParser::applyFunction(double a, const std::string& func) {
     // Inverse trigonometric functions
     if (func == "asin") {
         if (a < -1 || a > 1) {
-            throw std::runtime_error(
-                "Inverse sine argument must be between -1 and 1");
+            throw std::runtime_error("Inverse sine argument must be between -1 and 1");
         }
         return std::asin(a) * 180.0 / M_PI;  // Convert radians to degrees
     }
     if (func == "acos") {
         if (a < -1 || a > 1) {
-            throw std::runtime_error(
-                "Inverse cosine argument must be between -1 and 1");
+            throw std::runtime_error("Inverse cosine argument must be between -1 and 1");
         }
         return std::acos(a) * 180.0 / M_PI;  // Convert radians to degrees
     }

@@ -26,8 +26,7 @@ void modify_header(const std::string& header_path) {
     input_file.seekg(0, std::ios::end);
     content.reserve(input_file.tellg());
     input_file.seekg(0, std::ios::beg);
-    content.assign((std::istreambuf_iterator<char>(input_file)),
-                   std::istreambuf_iterator<char>());
+    content.assign((std::istreambuf_iterator<char>(input_file)), std::istreambuf_iterator<char>());
     input_file.close();
 
     // Check if the header is already fixed
@@ -53,8 +52,7 @@ void modify_header(const std::string& header_path) {
 
 int main() {
     // Paths to the generated header files (relative to the build directory)
-    std::vector<std::string> header_files{"../includes/font_ubuntu.h",
-                                          "../includes/icon_calc.h"};
+    std::vector<std::string> header_files{"../includes/font_ubuntu.h", "../includes/icon_calc.h"};
 
     for (const std::string& header_file : header_files) {
         modify_header(header_file);

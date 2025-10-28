@@ -59,39 +59,31 @@ static const std::map<int, ButtonCategory> buttonCategories = {
 
 // Creates and returns a vector of Button objects arranged in a calculator
 // layout
-std::vector<Button> CreateButtons(int btnW, int btnH, int margin, int topOffset,
-                                  int leftOffset, const Font& font) {
+std::vector<Button> CreateButtons(int btnW, int btnH, int margin, int topOffset, int leftOffset, const Font& font) {
     typedef std::vector<std::pair<std::string, int>> ButtonRow;
     typedef std::vector<ButtonRow> ButtonLayout;
 
     // Define button labels and their corresponding IDs in a grid layout
     const ButtonLayout layout = {
-        {{"sin", 110}, {"cos", 111}, {"tan", 112}, {"log", 113}, {"ln", 114}},
-        {{"<-", 102}, {"sqrt", 116}, {"x^y", '^'}, {"(", '('}, {")", ')'}},
-        {{"7", '7'}, {"8", '8'}, {"9", '9'}, {"/", '/'}, {"*", '*'}},
-        {{"4", '4'}, {"5", '5'}, {"6", '6'}, {"-", '-'}, {"+", '+'}},
-        {{"1", '1'}, {"2", '2'}, {"3", '3'}, {"0", '0'}, {".", '.'}},
-        {{"+/-", 103}, {"ANS", 205}, {"=", '='}, {"Theme", 100}, {"C", 101}}};
+        {{"sin", 110}, {"cos", 111}, {"tan", 112}, {"log", 113}, {"ln", 114}}, {{"<-", 102}, {"sqrt", 116}, {"x^y", '^'}, {"(", '('}, {")", ')'}},
+        {{"7", '7'}, {"8", '8'}, {"9", '9'}, {"/", '/'}, {"*", '*'}},          {{"4", '4'}, {"5", '5'}, {"6", '6'}, {"-", '-'}, {"+", '+'}},
+        {{"1", '1'}, {"2", '2'}, {"3", '3'}, {"0", '0'}, {".", '.'}},          {{"+/-", 103}, {"ANS", 205}, {"=", '='}, {"Theme", 100}, {"C", 101}}};
 
     std::vector<Button> buttons;
     buttons.reserve(30);  // Pre-allocate memory for efficiency
 
     for (size_t row = 0; row < layout.size(); ++row) {
         for (size_t col = 0; col < layout[row].size(); ++col) {
-            Rectangle rect = {
-                static_cast<float>(leftOffset + col * (btnW + margin)),
-                static_cast<float>(topOffset + row * (btnH + margin)),
-                static_cast<float>(btnW), static_cast<float>(btnH)};
-            buttons.emplace_back(rect, layout[row][col].first,
-                                 layout[row][col].second, font);
+            Rectangle rect = {static_cast<float>(leftOffset + col * (btnW + margin)), static_cast<float>(topOffset + row * (btnH + margin)),
+                              static_cast<float>(btnW), static_cast<float>(btnH)};
+            buttons.emplace_back(rect, layout[row][col].first, layout[row][col].second, font);
         }
     }
     return buttons;
 }
 
 // Draws all calculator buttons and highlights the one under the mouse cursor
-void DrawButtons(const std::vector<Button>& buttons, const Font& font,
-                 Vector2 mouse, const bool isDarkMode) {
+void DrawButtons(const std::vector<Button>& buttons, const Font& font, Vector2 mouse, const bool isDarkMode) {
     struct ThemeColors {
         Color numberBg;
         Color operatorBg;
@@ -125,9 +117,7 @@ void DrawButtons(const std::vector<Button>& buttons, const Font& font,
     const ThemeColors& theme = isDarkMode ? darkTheme : lightTheme;
 
     for (const Button& btn : buttons) {
-        ButtonCategory category = buttonCategories.count(btn.id)
-                                      ? buttonCategories.at(btn.id)
-                                      : ButtonCategory::NUMBER;
+        ButtonCategory category = buttonCategories.count(btn.id) ? buttonCategories.at(btn.id) : ButtonCategory::NUMBER;
 
         bool isHovered = CheckCollisionPointRec(mouse, btn.rect);
         Color btnColor = isHovered ? theme.hover : [&]() {
@@ -149,33 +139,22 @@ void DrawButtons(const std::vector<Button>& buttons, const Font& font,
 
         // Draw button with rounded corners
         DrawRectangleRounded(btn.rect, 0.3f, 0, btnColor);
-        DrawRectangleRoundedLines(btn.rect, 0.3f, 0,
-                                  isHovered ? DARKGRAY : GRAY);
+        DrawRectangleRoundedLines(btn.rect, 0.3f, 0, isHovered ? DARKGRAY : GRAY);
 
         if (btn.texture != nullptr) {
-            float scale =
-                std::min((btn.rect.width - 10.0f) / btn.texture->width,
-                         (btn.rect.height - 10.0f) / btn.texture->height);
+            float scale = std::min((btn.rect.width - 10.0f) / btn.texture->width, (btn.rect.height - 10.0f) / btn.texture->height);
 
-            Vector2 texturePos = {
-                btn.rect.x +
-                    (btn.rect.width - btn.texture->width * scale) * 0.5f,
-                btn.rect.y +
-                    (btn.rect.height - btn.texture->height * scale) * 0.5f};
+            Vector2 texturePos = {btn.rect.x + (btn.rect.width - btn.texture->width * scale) * 0.5f,
+                                  btn.rect.y + (btn.rect.height - btn.texture->height * scale) * 0.5f};
 
-            DrawTextureEx(*btn.texture, texturePos, 0.0f, scale,
-                          isDarkMode ? DARKGRAY : WHITE);
+            DrawTextureEx(*btn.texture, texturePos, 0.0f, scale, isDarkMode ? DARKGRAY : WHITE);
         } else {
-            Vector2 textPos = {
-                btn.rect.x + (btn.rect.width - btn.labelSize.x) * 0.5f,
-                btn.rect.y + (btn.rect.height - btn.labelSize.y) * 0.5f};
+            Vector2 textPos = {btn.rect.x + (btn.rect.width - btn.labelSize.x) * 0.5f, btn.rect.y + (btn.rect.height - btn.labelSize.y) * 0.5f};
 
-            DrawTextEx(font, btn.label.c_str(), textPos,
-                       static_cast<float>(btn.fontSize), 0, theme.text);
+            DrawTextEx(font, btn.label.c_str(), textPos, static_cast<float>(btn.fontSize), 0, theme.text);
 
             if (!isHovered) {
-                Rectangle innerRect = {btn.rect.x + 1, btn.rect.y + 1,
-                                       btn.rect.width - 2, btn.rect.height - 2};
+                Rectangle innerRect = {btn.rect.x + 1, btn.rect.y + 1, btn.rect.width - 2, btn.rect.height - 2};
                 DrawRectangleLinesEx(innerRect, 1, Fade(WHITE, 0.3f));
             }
         }
