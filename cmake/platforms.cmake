@@ -12,11 +12,28 @@ elseif(UNIX AND NOT APPLE)
     set(IS_LINUX TRUE)
 endif()
 
-# Include platform-specific CMake files
+# Detect compiler type
+set(COMPILER_IS_CLANG FALSE)
+set(COMPILER_IS_GCC FALSE)
+set(COMPILER_IS_MSVC FALSE)
+
+if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    set(COMPILER_IS_CLANG TRUE)
+elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
+    set(COMPILER_IS_GCC TRUE)
+elseif(MSVC)
+    set(COMPILER_IS_MSVC TRUE)
+endif()
+
+# Platform-specific additions (not full flag sets - those are in main CMakeLists.txt)
 if(IS_WINDOWS)
-    include(${CMAKE_CURRENT_LIST_DIR}/windows.cmake)
+    # Windows-specific defines handled in main CMakeLists.txt
 elseif(IS_MACOS)
-    include(${CMAKE_CURRENT_LIST_DIR}/macos.cmake)
+    # macOS: Enable ARC for Objective-C if needed
+    if(COMPILER_IS_CLANG)
+        # Set later after target is defined
+    endif()
 elseif(IS_LINUX)
-    include(${CMAKE_CURRENT_LIST_DIR}/linux.cmake)
+    # Linux: Add PIC for shared library compatibility
+    set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 endif()

@@ -1,7 +1,6 @@
 #include "../includes/calculator.h"
 
 #include <algorithm>
-#include <array>
 #include <cmath>
 #include <cstring>
 #include <iomanip>
@@ -9,27 +8,23 @@
 
 #include "../includes/parser.h"
 
-// Format a number for display, removing trailing zeros and decimal point if
-// needed
-std::string FormatNumber(double value, int precision = 10) {
-    // Handle special cases
+// Format a number for display, removing trailing zeros
+std::string Calculator::formatNumber(double value, int precision) {
     if (std::isnan(value))
         return "Error: NaN";
     if (std::isinf(value))
         return value > 0 ? "Infinity" : "-Infinity";
 
-    // Format with fixed precision
     std::ostringstream oss;
     oss << std::fixed << std::setprecision(precision) << value;
     std::string result = oss.str();
 
     // Remove trailing zeros
-    auto lastNonZero = result.find_last_not_of('0');
-    if (lastNonZero != std::string::npos) {
-        result.erase(lastNonZero + 1);
+    if (auto pos = result.find_last_not_of('0'); pos != std::string::npos) {
+        result.erase(pos + 1);
     }
 
-    // Remove decimal point if it's the last character
+    // Remove trailing decimal point
     if (!result.empty() && result.back() == '.') {
         result.pop_back();
     }
@@ -37,19 +32,178 @@ std::string FormatNumber(double value, int precision = 10) {
     return result;
 }
 
-// Handles all button press events and updates calculator state accordingly
-void HandleButtonPress(CalculatorState &state, int clicked) {
-    static const std::array<std::string, 11> functions = {"sin(", "cos(", "tan(", "log(", "ln(", "exp(", "sqrt(", "hyp(", "asin(", "acos(", "atan("};
-    // Clear error state when any button is pressed
-    if (state.errorState) {
-        state.errorState = false;
-        state.errorMessage.clear();
-        state.display = "0";
-        state.expression.clear();
+void Calculator::clear() noexcept {
+    expression_.clear();
+    display_    = "0";
+    errorState_ = false;
+    errorMessage_.clear();
+    justEvaluated_ = false;
+}
+
+void Calculator::clearError() noexcept {
+    if (errorState_) {
+        errorState_ = false;
+        errorMessage_.clear();
+        display_ = "0";
+        expression_.clear();
+    }
+}
+
+void Calculator::handleDigit(char digit) {
+    if (justEvaluated_) {
+        expression_.clear();
+        display_       = "0";
+        justEvaluated_ = false;
     }
 
-    std::string append;
-    switch (clicked) {
+    if (display_ == "0") {
+        display_ = std::string(1, digit);
+    } else {
+        display_.push_back(digit);
+    }
+    expression_.push_back(digit);
+}
+
+void Calculator::handleOperator(char op) {
+    if (justEvaluated_) {
+        expression_    = formatNumber(lastResult_);
+        justEvaluated_ = false;
+    }
+    expression_.push_back(op);
+    display_ = "0";
+}
+
+void Calculator::handleParenthesis(char paren) { expression_.push_back(paren); }
+
+void Calculator::handleFunction(int functionId) {
+    if (justEvaluated_) {
+        expression_.clear();
+        justEvaluated_ = false;
+    }
+
+    const auto index = static_cast<std::size_t>(functionId - 110);
+    if (index < FUNCTIONS.size()) {
+        expression_ += FUNCTIONS[index];
+    }
+}
+
+void Calculator::handleBackspace() {
+    if (justEvaluated_) {
+        clear();
+        return;
+    }
+
+    if (!expression_.empty()) {
+        bool found = false;
+        // Try to match and remove a function name
+        for (const auto &func : FUNCTIONS) {
+            if (expression_.size() >= func.size() && expression_.compare(expression_.size() - func.size(), func.size(), func) == 0) {
+                expression_.erase(expression_.size() - func.size());
+                found = true;
+                break;
+            }
+        }
+
+        if (!found) {
+            expression_.pop_back();
+        }
+    }
+
+    if (!display_.empty() && display_ != "0") {
+        display_.pop_back();
+        if (display_.empty()) {
+            display_ = "0";
+        }
+    }
+}
+
+void Calculator::handleNegate() {
+    if (justEvaluated_) {
+        lastResult_    = -lastResult_;
+        display_       = formatNumber(lastResult_);
+        expression_    = display_;
+        justEvaluated_ = false;
+        return;
+    }
+
+    if (expression_.empty())
+        return;
+
+    // Find where the last number starts
+    std::size_t lastNumStart = 0;
+    for (std::size_t i = expression_.length(); i > 0; --i) {
+        if (std::strchr("()+-*/^", expression_[i - 1])) {
+            lastNumStart = i;
+            break;
+        }
+    }
+
+    std::string lastNumStr = expression_.substr(lastNumStart);
+    if (lastNumStr.empty())
+        return;
+
+    // Handle parenthesized negative numbers
+    if (lastNumStr.length() > 2 && lastNumStr.front() == '(' && lastNumStr.back() == ')') {
+        std::string positiveNum = lastNumStr.substr(2, lastNumStr.length() - 3);
+        expression_.replace(lastNumStart, lastNumStr.length(), positiveNum);
+        display_ = positiveNum;
+    } else {
+        double lastNum        = std::stod(lastNumStr);
+        lastNum               = -lastNum;
+        std::string newNumStr = formatNumber(lastNum);
+
+        if (lastNum < 0 && lastNumStart > 0 && expression_[lastNumStart - 1] != '(') {
+            newNumStr = "(" + newNumStr + ")";
+        }
+
+        expression_.replace(lastNumStart, lastNumStr.length(), newNumStr);
+        display_ = formatNumber(lastNum);
+    }
+}
+
+void Calculator::handleAns() { expression_ += formatNumber(lastResult_); }
+
+void Calculator::handleEquals() {
+    try {
+        if (expression_.empty()) {
+            display_ = "0";
+            return;
+        }
+
+        auto evalExpr   = expression_;
+        auto openParens = std::count(evalExpr.begin(), evalExpr.end(), '(') - std::count(evalExpr.begin(), evalExpr.end(), ')');
+        evalExpr.append(static_cast<std::size_t>(openParens), ')');
+
+        MathParser parser;
+        auto result = parser.evaluate(evalExpr);
+
+        if (!result) {
+            throw std::runtime_error("Evaluation failed");
+        }
+
+        auto resultStr = formatNumber(*result);
+
+        if (history_.size() >= MAX_HISTORY_SIZE) {
+            history_.erase(history_.begin());
+        }
+        history_.push_back(expression_ + " = " + resultStr);
+
+        display_       = resultStr;
+        expression_    = resultStr;
+        lastResult_    = *result;
+        justEvaluated_ = true;
+    } catch (const std::exception &e) {
+        display_ = "Error";
+        expression_.clear();
+        errorState_   = true;
+        errorMessage_ = e.what();
+    }
+}
+
+void Calculator::handleButtonPress(int buttonId) {
+    clearError();
+
+    switch (buttonId) {
     case '0':
     case '1':
     case '2':
@@ -59,144 +213,46 @@ void HandleButtonPress(CalculatorState &state, int clicked) {
     case '6':
     case '7':
     case '8':
-    case '9': {
-        if (state.justEvaluated) {
-            state.expression.clear();
-            state.display       = "0";
-            state.justEvaluated = false;
-        }
-        if (state.display == "0") {
-            state.display = std::string(1, static_cast<char>(clicked));
-        } else {
-            state.display.push_back(static_cast<char>(clicked));
-        }
-        append = std::string(1, static_cast<char>(clicked));
+    case '9':
+        handleDigit(static_cast<char>(buttonId));
         break;
-    }
-    case '.': {
-        if (state.display.find('.') == std::string::npos) {
-            state.display.push_back('.');
-            append = ".";
+
+    case '.':
+        if (display_.find('.') == std::string::npos) {
+            display_.push_back('.');
+            expression_.push_back('.');
         }
         break;
-    }
+
     case '+':
     case '-':
     case '*':
     case '/':
-    case '^': {
-        if (state.justEvaluated) {
-            state.expression    = FormatNumber(state.lastResult);
-            state.justEvaluated = false;
-        }
-        append        = std::string(1, static_cast<char>(clicked));
-        state.display = "0";
+    case '^':
+        handleOperator(static_cast<char>(buttonId));
         break;
-    }
+
     case '(':
-    case ')': {
-        append = std::string(1, static_cast<char>(clicked));
+    case ')':
+        handleParenthesis(static_cast<char>(buttonId));
         break;
-    }
-    case 100: { // Dark/Light Mode Toggle
-        state.isDarkMode = !state.isDarkMode;
-        return;
-    }
-    case 101: { // C - Clear
-        state.expression.clear();
-        state.display    = "0";
-        state.errorState = false;
-        state.errorMessage.clear();
-        return;
-    }
-    case 102: { // Backspace
-        if (state.justEvaluated) {
-            state.expression.clear();
-            state.display    = "0";
-            state.errorState = false;
-            state.errorMessage.clear();
-            state.justEvaluated = false;
-            return;
-        }
 
-        if (!state.expression.empty()) {
-            // Enhanced backspace logic to remove trailing functions or
-            // numbers
-            bool found = false;
-            // Try to match and remove a function name
-            for (const auto &func : functions) {
-                if (state.expression.size() >= func.size() && state.expression.substr(state.expression.size() - func.size()) == func) {
-                    state.expression.erase(state.expression.size() - func.size());
-                    found = true;
-                    break;
-                }
-            }
+    case 100: // Theme toggle
+        toggleDarkMode();
+        break;
 
-            // If not a function, remove the last character
-            if (!found) {
-                state.expression.pop_back();
-            }
-        }
+    case 101: // Clear
+        clear();
+        break;
 
-        // Also update the display
-        if (!state.display.empty() && state.display != "0") {
-            state.display.pop_back();
-            if (state.display.empty()) {
-                state.display = "0";
-            }
-        }
+    case 102: // Backspace
+        handleBackspace();
+        break;
 
-        return;
-    }
-    case 103: { // +/-
-        if (state.justEvaluated) {
-            state.lastResult    = -state.lastResult;
-            state.display       = FormatNumber(state.lastResult);
-            state.expression    = state.display;
-            state.justEvaluated = false;
-            return;
-        }
+    case 103: // Negate
+        handleNegate();
+        break;
 
-        if (state.expression.empty())
-            return;
-
-        // Find where the last number starts
-        size_t lastNumStart = 0;
-        for (size_t i = state.expression.length() - 1; i != (size_t)-1; --i) {
-            if (strchr("()+-*/^", state.expression[i])) {
-                lastNumStart = i + 1;
-                break;
-            }
-        }
-
-        std::string lastNumStr = state.expression.substr(lastNumStart);
-        if (lastNumStr.empty())
-            return;
-
-        // Case 1: Number is parenthesized, e.g., "(-6)". Toggle to "6".
-        if (lastNumStr.length() > 2 && lastNumStr.front() == '(' && lastNumStr.back() == ')') {
-            std::string positiveNum = lastNumStr.substr(2, lastNumStr.length() - 3);
-            state.expression.replace(lastNumStart, lastNumStr.length(), positiveNum);
-            state.display = positiveNum;
-        } else { // Case 2: Number is not parenthesized. Toggle its sign.
-            double lastNum        = std::stod(lastNumStr);
-            lastNum               = -lastNum;
-            std::string newNumStr = FormatNumber(lastNum);
-
-            // Wrap with parentheses if it's negative and follows another
-            // number/operator
-            if (lastNum < 0 && lastNumStart > 0) {
-                char prevChar = state.expression[lastNumStart - 1];
-                if (prevChar != '(') {
-                    newNumStr = "(" + newNumStr + ")";
-                }
-            }
-
-            state.expression.replace(lastNumStart, lastNumStr.length(), newNumStr);
-            state.display = FormatNumber(lastNum);
-        }
-        return;
-    }
     case 110:
     case 111:
     case 112:
@@ -207,55 +263,23 @@ void HandleButtonPress(CalculatorState &state, int clicked) {
     case 117:
     case 118:
     case 119:
-    case 120: {
-        if (state.justEvaluated) {
-            state.expression.clear();
-            state.justEvaluated = false;
-        }
+    case 120:
+        handleFunction(buttonId);
+        break;
 
-        append = functions[static_cast<size_t>(clicked - 110)];
+    case 205: // ANS
+        handleAns();
+        break;
+
+    case '=':
+        handleEquals();
+        break;
+
+    default:
         break;
     }
-    case 205: { // ANS button
-        append = FormatNumber(state.lastResult);
-        break;
-    }
-    case '=': {
-        try {
-            if (state.expression.empty()) {
-                state.display = "0";
-                return;
-            }
 
-            auto evalExpr   = state.expression;
-            auto openParens = std::count(evalExpr.begin(), evalExpr.end(), '(') - std::count(evalExpr.begin(), evalExpr.end(), ')');
-            evalExpr.append(openParens, ')');
-
-            MathParser parser;
-            auto result    = *parser.evaluate(evalExpr);
-            auto resultStr = FormatNumber(result);
-
-            if (state.history.size() >= 5) {
-                state.history.erase(state.history.begin());
-            }
-            state.history.push_back(state.expression + " = " + resultStr);
-
-            state.display       = resultStr;
-            state.expression    = resultStr;
-            state.lastResult    = result;
-            state.justEvaluated = true;
-        } catch (const std::exception &e) {
-            state.display = "Error";
-            state.expression.clear();
-            state.errorState   = true;
-            state.errorMessage = e.what();
-        }
-        return;
-    }
-    }
-
-    if (!append.empty()) {
-        state.expression += append;
-        state.justEvaluated = false;
+    if (buttonId != 100 && buttonId != 101 && buttonId != '=') {
+        justEvaluated_ = false;
     }
 }

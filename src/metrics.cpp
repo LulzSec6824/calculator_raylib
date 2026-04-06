@@ -1,4 +1,5 @@
 #include "../includes/metrics.h"
+#include "raylib.h"
 
 #include <cstdio>
 

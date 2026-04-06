@@ -1,25 +1,28 @@
 #pragma once
-#include <cmath>
-#include <map>
-#include <memory>
-#include <sstream>
-#include <stack>
-#include <stdexcept>
+
+#include <optional>
 #include <string>
+#include <string_view>
 #include <vector>
 
 class MathParser {
   public:
-    std::unique_ptr<double> evaluate(const std::string &expression);
+    // Evaluate a mathematical expression and return the result
+    [[nodiscard]] std::optional<double> evaluate(std::string_view expression);
 
   private:
-    std::vector<std::string> tokenize(const std::string &expr);
-    std::vector<std::string> toRPN(const std::vector<std::string> &tokens);
-    double computeRPN(const std::vector<std::string> &rpn);
-    bool isNumber(const std::string &token);
-    bool isOperator(const std::string &token);
-    bool isFunction(const std::string &token);
-    int precedence(const std::string &op);
-    double applyOperator(double a, double b, const std::string &op);
-    double applyFunction(double a, const std::string &func);
+    // Tokenization and parsing
+    [[nodiscard]] std::vector<std::string> tokenize(std::string_view expr);
+    [[nodiscard]] std::vector<std::string> toRPN(const std::vector<std::string> &tokens);
+    [[nodiscard]] double computeRPN(const std::vector<std::string> &rpn);
+
+    // Token classification (constexpr for compile-time evaluation where possible)
+    [[nodiscard]] static bool isNumber(std::string_view token) noexcept;
+    [[nodiscard]] static constexpr bool isOperator(std::string_view token) noexcept;
+    [[nodiscard]] static constexpr bool isFunction(std::string_view token) noexcept;
+    [[nodiscard]] static constexpr int precedence(std::string_view op) noexcept;
+
+    // Computation
+    [[nodiscard]] static double applyOperator(double a, double b, std::string_view op);
+    [[nodiscard]] static double applyFunction(double a, std::string_view func);
 };

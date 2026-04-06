@@ -1,9 +1,15 @@
-if(CMAKE_BUILD_TYPE STREQUAL "Release")
+# Mark release builds (including LTO variants)
+if(CMAKE_BUILD_TYPE MATCHES "^Release")
     add_definitions(-DRELEASE_BUILD)
 endif()
 
+# Build tools need standard flags (not MinSize optimizations)
 add_executable(resource_exporter src/resource_exporter.cpp)
 target_link_libraries(resource_exporter raylib)
+# Ensure build tools have exceptions and RTTI enabled
+if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+    target_compile_options(resource_exporter PRIVATE -fexceptions -frtti)
+endif()
 
 set(EMBEDDED_RESOURCE_FILES
     ${CMAKE_CURRENT_SOURCE_DIR}/includes/font_ubuntu.h
@@ -25,6 +31,10 @@ add_custom_target(generate_resources ALL DEPENDS ${EMBEDDED_RESOURCE_FILES})
 
 add_executable(fix_headers src/fix_generated_headers.cpp)
 target_link_libraries(fix_headers PRIVATE raylib)
+# Ensure build tools have exceptions and RTTI enabled
+if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+    target_compile_options(fix_headers PRIVATE -fexceptions -frtti)
+endif()
 
 add_custom_command(
     OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/headers_fixed.stamp

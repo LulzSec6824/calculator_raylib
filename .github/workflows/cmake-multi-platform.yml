@@ -4,11 +4,11 @@ name: CMake on multiple platforms
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["Testing"]
     tags:
-      - 'v*'
+      - "v*"
   pull_request:
-    branches: [ "main" ]
+    branches: ["Testing"]
 
 jobs:
   build:
@@ -20,7 +20,8 @@ jobs:
         os:
           - ubuntu-latest
           - windows-latest
-        build_type: [Release]
+          - macos-latest
+        build_type: [ReleaseLTO]
         c_compiler:
           - gcc
           - clang
@@ -35,6 +36,9 @@ jobs:
           - os: ubuntu-latest
             c_compiler: clang
             cpp_compiler: clang++
+          - os: macos-latest
+            c_compiler: clang
+            cpp_compiler: clang++
         exclude:
           - os: windows-latest
             c_compiler: gcc
@@ -42,58 +46,89 @@ jobs:
             c_compiler: clang
           - os: ubuntu-latest
             c_compiler: cl
+          - os: macos-latest
+            c_compiler: gcc
+          - os: macos-latest
+            c_compiler: cl
 
     container: ${{ matrix.os == 'ubuntu-latest' && 'fedora:latest' || '' }}
 
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
-    - name: Set reusable strings
-      id: strings
-      shell: bash
-      run: |
-        echo "build-output-dir=${{ github.workspace }}/build" >> "$GITHUB_OUTPUT"
+      - name: Set reusable strings
+        id: strings
+        shell: bash
+        run: |
+          echo "build-output-dir=${{ github.workspace }}/build" >> "$GITHUB_OUTPUT"
 
-    - name: Install dependencies (Linux)
-      if: matrix.os == 'ubuntu-latest'
-      run: dnf install -y cmake gcc gcc-c++ clang clang++ make raylib-devel zip
+      - name: Install dependencies (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          dnf install -y cmake gcc gcc-c++ clang make zip \
+            libXrandr-devel libXi-devel libXcursor-devel libXinerama-devel \
+            mesa-libGL-devel
 
-    - name: Install vcpkg and raylib (Windows)
-      if: matrix.os == 'windows-latest'
-      shell: pwsh
-      run: |
-        git clone https://github.com/Microsoft/vcpkg $env:GITHUB_WORKSPACE/vcpkg
-        & "$env:GITHUB_WORKSPACE/vcpkg/bootstrap-vcpkg.bat"
-        & "$env:GITHUB_WORKSPACE/vcpkg/vcpkg" install raylib:x64-windows
+      - name: Install dependencies (macOS)
+        if: matrix.os == 'macos-latest'
+        run: |
+          brew install cmake
 
-    - name: Configure CMake
-      run: >
-        cmake -B ${{ steps.strings.outputs.build-output-dir }}
-        -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
-        -DCMAKE_C_COMPILER=${{ matrix.c_compiler }}
-        -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
-        ${{ matrix.os == 'windows-latest' && format('-DCMAKE_TOOLCHAIN_FILE={0}/vcpkg/scripts/buildsystems/vcpkg.cmake', github.workspace) || '' }}
-        -S .
+      - name: Configure CMake (Unix)
+        if: matrix.os != 'windows-latest'
+        run: >
+          cmake -B ${{ steps.strings.outputs.build-output-dir }}
+          -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
+          -DCMAKE_C_COMPILER=${{ matrix.c_compiler }}
+          -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+          -DUSE_NATIVE_ARCH=OFF
+          -S .
 
-    - name: Build
-      run: cmake --build ${{ steps.strings.outputs.build-output-dir }} --config ${{ matrix.build_type }}
+      - name: Configure CMake (Windows)
+        if: matrix.os == 'windows-latest'
+        run: >
+          cmake -B ${{ steps.strings.outputs.build-output-dir }}
+          -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
+          -DCMAKE_C_COMPILER=${{ matrix.c_compiler }}
+          -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+          -S .
 
-    - name: Package Artifact
-      shell: bash
-      run: |
-        mkdir release
-        EXEC_PATH="${{ steps.strings.outputs.build-output-dir }}${{ matrix.os == 'windows-latest' && format('/{0}', matrix.build_type) || '' }}/ray${{ matrix.os == 'windows-latest' && '.exe' || '' }}"
-        cmake -E copy "$EXEC_PATH" "release/"
-        cmake -E copy_directory "${{ steps.strings.outputs.build-output-dir }}/resource" "release/resource"
-        if [ "${{ runner.os }}" == "Windows" ]; then
-          powershell -Command "Compress-Archive -Path release/* -DestinationPath ${{ matrix.os }}-${{ matrix.c_compiler }}-raylib-calculator.zip"
-        else
-          (cd release && zip -r ../${{ matrix.os }}-${{ matrix.c_compiler }}-raylib-calculator.zip .)
-        fi
+      - name: Build
+        run: cmake --build ${{ steps.strings.outputs.build-output-dir }} --config ${{ matrix.build_type }}
 
-    - name: Upload Artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: ${{ matrix.os }}-${{ matrix.c_compiler }}-artifact
-        path: ${{ matrix.os }}-${{ matrix.c_compiler }}-raylib-calculator.zip
+      - name: Package Artifact (Unix)
+        if: matrix.os != 'windows-latest'
+        shell: bash
+        run: |
+          mkdir -p release
+          EXEC_PATH="${{ steps.strings.outputs.build-output-dir }}/ray"
+          if [ -f "$EXEC_PATH" ]; then
+            cp "$EXEC_PATH" "release/"
+          fi
+          if [ -d "${{ steps.strings.outputs.build-output-dir }}/resource" ]; then
+            cp -r "${{ steps.strings.outputs.build-output-dir }}/resource" "release/"
+          fi
+          cd release && zip -r "../${{ matrix.os }}-${{ matrix.c_compiler }}-raylib-calculator.zip" .
 
+      - name: Package Artifact (Windows)
+        if: matrix.os == 'windows-latest'
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path release
+          $buildDir = "${{ steps.strings.outputs.build-output-dir }}"
+          $execPath = "$buildDir/${{ matrix.build_type }}/ray.exe"
+          if (Test-Path $execPath) {
+            Copy-Item $execPath -Destination "release/"
+          }
+          if (Test-Path "$buildDir/resource") {
+            Copy-Item -Recurse "$buildDir/resource" -Destination "release/"
+          }
+          Compress-Archive -Path "release/*" -DestinationPath "${{ matrix.os }}-${{ matrix.c_compiler }}-raylib-calculator.zip"
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.os }}-${{ matrix.c_compiler }}-artifact
+          path: ${{ matrix.os }}-${{ matrix.c_compiler }}-raylib-calculator.zip

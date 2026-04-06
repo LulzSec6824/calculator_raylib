@@ -2,8 +2,6 @@
 #include <chrono>
 #include <string>
 
-#include "../raylib/src/raylib.h"
-
 class PerformanceMetrics {
   private:
     double frameTime{0.0};                                     // Current frame time in milliseconds

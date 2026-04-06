@@ -1,71 +1,81 @@
 #include "../includes/display.h"
 
-Display::Display(Rectangle box, Font displayFont) : displayBox(box), font(displayFont), maxTextWidth(box.width - 40) {}
+#include <string>
 
-void Display::draw(const CalculatorState &calc, const Theme &theme, const std::string &perfInfo) {
-    // Get theme colors based on current mode
-    Color displayColor = theme.getDisplayColor(calc.isDarkMode);
-    Color textColor    = theme.getTextColor(calc.isDarkMode);
-    Color historyColor = theme.textHistory;
-    Color fadedColor   = theme.getFadedTextColor(calc.isDarkMode);
+Display::Display(Rectangle box, Font displayFont) noexcept : displayBox_(box), font_(displayFont), maxTextWidth_(box.width - 40.0f) {}
 
-    // Draw display box with theme-appropriate color
-    DrawRectangleRec(displayBox, displayColor);
+void Display::draw(const Calculator &calc, const Theme &theme, std::string_view perfInfo) {
+    const bool isDarkMode = calc.isDarkMode();
 
-    // Use the expression as the main display, fallback to display string if
-    // empty
-    std::string mainDisplayString = calc.expression.empty() ? calc.display : calc.expression;
-    std::string dispToDraw        = truncateToFit(mainDisplayString, dispFontSize, maxTextWidth);
-    Vector2 dispSize              = MeasureTextEx(font, dispToDraw.c_str(), dispFontSize, 0);
+    // Get theme colors
+    const Color displayColor = theme.getDisplayColor(isDarkMode);
+    const Color textColor    = theme.getTextColor(isDarkMode);
+    const Color historyColor = theme.textHistory;
+    const Color fadedColor   = theme.getFadedTextColor(isDarkMode);
 
-    // Display history with optimized positioning
-    const float historyStartY     = displayBox.y + 10.0f;
-    const float historyLineHeight = 25.0f;
-    const float historyX          = displayBox.x + 10.0f;
+    // Draw display box
+    DrawRectangleRec(displayBox_, displayColor);
 
-    // Draw history entries
+    // Get display strings
+    const auto &expression        = calc.getExpression();
+    const auto &display           = calc.getDisplay();
+    std::string mainDisplayString = expression.empty() ? std::string(display) : std::string(expression);
+    std::string dispToDraw        = truncateToFit(mainDisplayString, DISPLAY_FONT_SIZE, maxTextWidth_);
+    Vector2 dispSize              = MeasureTextEx(font_, dispToDraw.c_str(), DISPLAY_FONT_SIZE, 0);
+
+    // Draw history
+    const float historyStartY = displayBox_.y + 10.0f;
+    const float historyX      = displayBox_.x + 10.0f;
+
     float currentY = historyStartY;
-    for (std::vector<std::string>::const_iterator it = calc.history.begin(); it != calc.history.end(); ++it) {
-        DrawTextEx(font, it->c_str(), Vector2{historyX, currentY}, historyFontSize, 0, historyColor);
-        currentY += historyLineHeight;
+    for (const auto &entry : calc.getHistory()) {
+        DrawTextEx(font_, entry.c_str(), Vector2{historyX, currentY}, HISTORY_FONT_SIZE, 0, historyColor);
+        currentY += HISTORY_LINE_HEIGHT;
     }
 
-    // Display error message if in error state
-    if (calc.errorState && !calc.errorMessage.empty()) {
-        std::string errorToDraw = truncateToFit("Error: " + calc.errorMessage, exprFontSize, maxTextWidth);
+    // Draw error message if present
+    if (calc.hasError()) {
+        std::string errorText   = "Error: " + std::string(calc.getErrorMessage());
+        std::string errorToDraw = truncateToFit(errorText, EXPR_FONT_SIZE, maxTextWidth_);
 
-        float errorX = displayBox.x + 30.0f;
-        float errorY = displayBox.y + displayBox.height - 60.0f;
-        DrawTextEx(font, errorToDraw.c_str(), Vector2{errorX, errorY}, exprFontSize, 0, RED);
+        float errorX = displayBox_.x + 30.0f;
+        float errorY = displayBox_.y + displayBox_.height - 60.0f;
+        DrawTextEx(font_, errorToDraw.c_str(), Vector2{errorX, errorY}, EXPR_FONT_SIZE, 0, RED);
     }
 
-    // Calculate display position
-    const float dispX = displayBox.x + displayBox.width - dispSize.x - 30.0f;
-    const float dispY = displayBox.y + displayBox.height - dispSize.y - 30.0f;
+    // Draw main display text (right-aligned)
+    const float dispX = displayBox_.x + displayBox_.width - dispSize.x - 30.0f;
+    const float dispY = displayBox_.y + displayBox_.height - dispSize.y - 30.0f;
+    DrawTextEx(font_, dispToDraw.c_str(), Vector2{dispX, dispY}, DISPLAY_FONT_SIZE, 0, textColor);
 
-    // Draw the display text
-    DrawTextEx(font, dispToDraw.c_str(), Vector2{dispX, dispY}, dispFontSize, 0, textColor);
-
-    // Display performance info only in debug builds
+    // Debug info (non-release builds only)
 #ifndef RELEASE_BUILD
-    DrawTextEx(font, perfInfo.c_str(), Vector2{displayBox.x + 10.0f, displayBox.y + displayBox.height - 30.0f}, statusFontSize, 0, fadedColor);
+    if (!perfInfo.empty()) {
+        DrawTextEx(font_, std::string(perfInfo).c_str(), Vector2{displayBox_.x + 10.0f, displayBox_.y + displayBox_.height - 30.0f}, STATUS_FONT_SIZE,
+                   0, fadedColor);
+    }
 
-    // Display mode indicator
-    const char *modeText = calc.isDarkMode ? "Dark Mode" : "Light Mode";
-    DrawTextEx(font, modeText, Vector2{displayBox.x + displayBox.width - 100.0f, displayBox.y + displayBox.height - 30.0f}, statusFontSize, 0,
+    const char *modeText = isDarkMode ? "Dark Mode" : "Light Mode";
+    DrawTextEx(font_, modeText, Vector2{displayBox_.x + displayBox_.width - 100.0f, displayBox_.y + displayBox_.height - 30.0f}, STATUS_FONT_SIZE, 0,
                fadedColor);
+#else
+    (void)perfInfo; // Suppress unused warning
+    (void)fadedColor;
 #endif
 }
 
-std::string Display::truncateToFit(const std::string &text, float fontSize, float maxWidth) const {
-    std::string result = text;
-    Vector2 size       = MeasureTextEx(font, result.c_str(), fontSize, 0);
+std::string Display::truncateToFit(std::string_view text, float fontSize, float maxWidth) const {
+    std::string result(text);
+    Vector2 size = MeasureTextEx(font_, result.c_str(), fontSize, 0);
+
     while (size.x > maxWidth && result.length() > 1) {
         result.erase(0, 1);
-        size = MeasureTextEx(font, result.c_str(), fontSize, 0);
+        size = MeasureTextEx(font_, result.c_str(), fontSize, 0);
     }
+
     if (result != text && result.length() > 1) {
         result[0] = '.';
     }
+
     return result;
 }

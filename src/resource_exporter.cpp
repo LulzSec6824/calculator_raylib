@@ -1,4 +1,3 @@
-#include <memory>
 #include <stdexcept>
 
 #include "../raylib/src/raylib.h"
