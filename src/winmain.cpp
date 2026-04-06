@@ -12,4 +12,4 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     return main();
 }
 
-#endif  // defined(_WIN32) && !defined(_DEBUG)
+#endif // defined(_WIN32) && !defined(_DEBUG)

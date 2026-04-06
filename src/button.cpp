@@ -1,6 +1,5 @@
 #include "../includes/button.h"
 
-#include <cmath>
 #include <map>
 #include <string>
 #include <vector>
@@ -59,7 +58,7 @@ static const std::map<int, ButtonCategory> buttonCategories = {
 
 // Creates and returns a vector of Button objects arranged in a calculator
 // layout
-std::vector<Button> CreateButtons(int btnW, int btnH, int margin, int topOffset, int leftOffset, const Font& font) {
+std::vector<Button> CreateButtons(int btnW, int btnH, int margin, int topOffset, int leftOffset, const Font &font) {
     typedef std::vector<std::pair<std::string, int>> ButtonRow;
     typedef std::vector<ButtonRow> ButtonLayout;
 
@@ -70,7 +69,7 @@ std::vector<Button> CreateButtons(int btnW, int btnH, int margin, int topOffset,
         {{"1", '1'}, {"2", '2'}, {"3", '3'}, {"0", '0'}, {".", '.'}},          {{"+/-", 103}, {"ANS", 205}, {"=", '='}, {"Theme", 100}, {"C", 101}}};
 
     std::vector<Button> buttons;
-    buttons.reserve(30);  // Pre-allocate memory for efficiency
+    buttons.reserve(30); // Pre-allocate memory for efficiency
 
     for (size_t row = 0; row < layout.size(); ++row) {
         for (size_t col = 0; col < layout[row].size(); ++col) {
@@ -83,7 +82,7 @@ std::vector<Button> CreateButtons(int btnW, int btnH, int margin, int topOffset,
 }
 
 // Draws all calculator buttons and highlights the one under the mouse cursor
-void DrawButtons(const std::vector<Button>& buttons, const Font& font, Vector2 mouse, const bool isDarkMode) {
+void DrawButtons(const std::vector<Button> &buttons, const Font &font, Vector2 mouse, const bool isDarkMode) {
     struct ThemeColors {
         Color numberBg;
         Color operatorBg;
@@ -95,45 +94,45 @@ void DrawButtons(const std::vector<Button>& buttons, const Font& font, Vector2 m
     };
 
     const ThemeColors lightTheme = {
-        {240, 240, 240, 255},  // numberBg
-        {230, 230, 250, 255},  // operatorBg (Lavender)
-        {230, 250, 230, 255},  // functionBg (Light green)
-        {250, 230, 230, 255},  // controlBg (Light red)
-        {250, 250, 210, 255},  // specialBg (Light yellow)
-        {173, 216, 230, 255},  // hover (Light blue)
-        BLACK                  // text
+        {240, 240, 240, 255}, // numberBg
+        {230, 230, 250, 255}, // operatorBg (Lavender)
+        {230, 250, 230, 255}, // functionBg (Light green)
+        {250, 230, 230, 255}, // controlBg (Light red)
+        {250, 250, 210, 255}, // specialBg (Light yellow)
+        {173, 216, 230, 255}, // hover (Light blue)
+        BLACK                 // text
     };
 
     const ThemeColors darkTheme = {
-        {60, 60, 60, 255},     // numberBg
-        {70, 70, 90, 255},     // operatorBg
-        {50, 80, 50, 255},     // functionBg
-        {80, 50, 50, 255},     // controlBg
-        {90, 90, 40, 255},     // specialBg
-        {100, 149, 237, 255},  // hover (Cornflower blue)
-        WHITE                  // text
+        {60, 60, 60, 255},    // numberBg
+        {70, 70, 90, 255},    // operatorBg
+        {50, 80, 50, 255},    // functionBg
+        {80, 50, 50, 255},    // controlBg
+        {90, 90, 40, 255},    // specialBg
+        {100, 149, 237, 255}, // hover (Cornflower blue)
+        WHITE                 // text
     };
 
-    const ThemeColors& theme = isDarkMode ? darkTheme : lightTheme;
+    const ThemeColors &theme = isDarkMode ? darkTheme : lightTheme;
 
-    for (const Button& btn : buttons) {
+    for (const Button &btn : buttons) {
         ButtonCategory category = buttonCategories.count(btn.id) ? buttonCategories.at(btn.id) : ButtonCategory::NUMBER;
 
         bool isHovered = CheckCollisionPointRec(mouse, btn.rect);
         Color btnColor = isHovered ? theme.hover : [&]() {
             switch (category) {
-                case ButtonCategory::NUMBER:
-                    return theme.numberBg;
-                case ButtonCategory::OPERATOR:
-                    return theme.operatorBg;
-                case ButtonCategory::FUNCTION:
-                    return theme.functionBg;
-                case ButtonCategory::CONTROL:
-                    return theme.controlBg;
-                case ButtonCategory::SPECIAL:
-                    return theme.specialBg;
-                default:
-                    return theme.numberBg;
+            case ButtonCategory::NUMBER:
+                return theme.numberBg;
+            case ButtonCategory::OPERATOR:
+                return theme.operatorBg;
+            case ButtonCategory::FUNCTION:
+                return theme.functionBg;
+            case ButtonCategory::CONTROL:
+                return theme.controlBg;
+            case ButtonCategory::SPECIAL:
+                return theme.specialBg;
+            default:
+                return theme.numberBg;
             }
         }();
 

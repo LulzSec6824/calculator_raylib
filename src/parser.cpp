@@ -8,7 +8,7 @@
 #define M_PI 3.14159265358979323846
 #endif
 
-std::unique_ptr<double> MathParser::evaluate(const std::string& expression) {
+std::unique_ptr<double> MathParser::evaluate(const std::string &expression) {
     if (expression.empty()) {
         throw std::runtime_error("Empty expression");
     }
@@ -21,17 +21,18 @@ std::unique_ptr<double> MathParser::evaluate(const std::string& expression) {
 
         std::vector<std::string> rpn = toRPN(tokens);
         return std::unique_ptr<double>(new double(computeRPN(rpn)));
-    } catch (const std::exception& e) {
+    } catch (const std::exception &e) {
         // Re-throw with more context if needed
         throw std::runtime_error(std::string("Calculation error: ") + e.what());
     }
 }
 
-std::vector<std::string> MathParser::tokenize(const std::string& expr) {
+std::vector<std::string> MathParser::tokenize(const std::string &expr) {
     std::vector<std::string> tokens;
     for (size_t i = 0; i < expr.length(); ++i) {
         char c = expr[i];
-        if (isspace(c)) continue;
+        if (isspace(c))
+            continue;
 
         if (c == '-' && (tokens.empty() || tokens.back() == "(" || isOperator(tokens.back()))) {
             // Unary minus
@@ -41,7 +42,7 @@ std::vector<std::string> MathParser::tokenize(const std::string& expr) {
                 num_str += expr[i];
                 i++;
             }
-            i--;  // Decrement because the outer loop increments
+            i--; // Decrement because the outer loop increments
             tokens.push_back(num_str);
         } else if (isdigit(c) || c == '.') {
             std::string num_str;
@@ -66,11 +67,11 @@ std::vector<std::string> MathParser::tokenize(const std::string& expr) {
     return tokens;
 }
 
-std::vector<std::string> MathParser::toRPN(const std::vector<std::string>& tokens) {
+std::vector<std::string> MathParser::toRPN(const std::vector<std::string> &tokens) {
     std::vector<std::string> output;
     std::stack<std::string> opStack;
 
-    for (const std::string& token : tokens) {
+    for (const std::string &token : tokens) {
         if (isNumber(token)) {
             output.push_back(token);
         } else if (isFunction(token)) {
@@ -104,10 +105,10 @@ std::vector<std::string> MathParser::toRPN(const std::vector<std::string>& token
     return output;
 }
 
-double MathParser::computeRPN(const std::vector<std::string>& rpn) {
+double MathParser::computeRPN(const std::vector<std::string> &rpn) {
     std::stack<double> stack;
 
-    for (const std::string& token : rpn) {
+    for (const std::string &token : rpn) {
         if (isNumber(token)) {
             stack.push(std::stod(token));
         } else if (isOperator(token)) {
@@ -135,33 +136,39 @@ double MathParser::computeRPN(const std::vector<std::string>& rpn) {
     return stack.top();
 }
 
-bool MathParser::isNumber(const std::string& token) {
+bool MathParser::isNumber(const std::string &token) {
     if (token.empty()) {
         return false;
     }
-    char* p;
+    char *p;
     strtod(token.c_str(), &p);
     return *p == 0;
 }
 
-bool MathParser::isOperator(const std::string& token) { return token == "+" || token == "-" || token == "*" || token == "/" || token == "^"; }
+bool MathParser::isOperator(const std::string &token) { return token == "+" || token == "-" || token == "*" || token == "/" || token == "^"; }
 
-bool MathParser::isFunction(const std::string& token) {
+bool MathParser::isFunction(const std::string &token) {
     return token == "sin" || token == "cos" || token == "tan" || token == "log" || token == "ln" || token == "exp" || token == "sqrt" ||
            token == "asin" || token == "acos" || token == "atan" || token == "hyp";
 }
 
-int MathParser::precedence(const std::string& op) {
-    if (op == "+" || op == "-") return 1;
-    if (op == "*" || op == "/") return 2;
-    if (op == "^") return 3;
+int MathParser::precedence(const std::string &op) {
+    if (op == "+" || op == "-")
+        return 1;
+    if (op == "*" || op == "/")
+        return 2;
+    if (op == "^")
+        return 3;
     return 0;
 }
 
-double MathParser::applyOperator(double a, double b, const std::string& op) {
-    if (op == "+") return a + b;
-    if (op == "-") return a - b;
-    if (op == "*") return a * b;
+double MathParser::applyOperator(double a, double b, const std::string &op) {
+    if (op == "+")
+        return a + b;
+    if (op == "-")
+        return a - b;
+    if (op == "*")
+        return a * b;
     if (op == "/") {
         if (b == 0) {
             throw std::runtime_error("Division by zero");
@@ -174,29 +181,28 @@ double MathParser::applyOperator(double a, double b, const std::string& op) {
             throw std::runtime_error("Cannot raise zero to a negative power");
         }
         if (a < 0 && std::floor(b) != b) {
-            throw std::runtime_error(
-                "Cannot compute imaginary results (negative base with "
-                "non-integer exponent)");
+            throw std::runtime_error("Cannot compute imaginary results (negative base with "
+                                     "non-integer exponent)");
         }
         return std::pow(a, b);
     }
     throw std::runtime_error("Unknown operator: " + op);
 }
 
-double MathParser::applyFunction(double a, const std::string& func) {
+double MathParser::applyFunction(double a, const std::string &func) {
     // Trigonometric functions (using degrees)
     if (func == "sin") {
-        return std::sin(a * M_PI / 180.0);  // Convert degrees to radians
+        return std::sin(a * M_PI / 180.0); // Convert degrees to radians
     }
     if (func == "cos") {
-        return std::cos(a * M_PI / 180.0);  // Convert degrees to radians
+        return std::cos(a * M_PI / 180.0); // Convert degrees to radians
     }
     if (func == "tan") {
         // Check for undefined values (90°, 270°, etc.)
         if (std::fmod(std::abs(a - 90.0), 180.0) < 1e-10) {
             throw std::runtime_error("Tangent is undefined at " + std::to_string(static_cast<int>(a)) + " degrees");
         }
-        return std::tan(a * M_PI / 180.0);  // Convert degrees to radians
+        return std::tan(a * M_PI / 180.0); // Convert degrees to radians
     }
 
     // Logarithmic functions
@@ -229,16 +235,16 @@ double MathParser::applyFunction(double a, const std::string& func) {
         if (a < -1 || a > 1) {
             throw std::runtime_error("Inverse sine argument must be between -1 and 1");
         }
-        return std::asin(a) * 180.0 / M_PI;  // Convert radians to degrees
+        return std::asin(a) * 180.0 / M_PI; // Convert radians to degrees
     }
     if (func == "acos") {
         if (a < -1 || a > 1) {
             throw std::runtime_error("Inverse cosine argument must be between -1 and 1");
         }
-        return std::acos(a) * 180.0 / M_PI;  // Convert radians to degrees
+        return std::acos(a) * 180.0 / M_PI; // Convert radians to degrees
     }
     if (func == "atan") {
-        return std::atan(a) * 180.0 / M_PI;  // Convert radians to degrees
+        return std::atan(a) * 180.0 / M_PI; // Convert radians to degrees
     }
 
     // Hyperbolic functions

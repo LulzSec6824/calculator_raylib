@@ -12,7 +12,7 @@
 #include "../raylib/src/raylib.h"
 
 // Forward declarations
-std::vector<Button> CreateButtons(int btnW, int btnH, int margin, int topOffset, int leftOffset, const Font& font);
+std::vector<Button> CreateButtons(int btnW, int btnH, int margin, int topOffset, int leftOffset, const Font &font);
 
 int main() {
     // Initialize performance metrics (debug builds only)
@@ -90,7 +90,7 @@ int main() {
         if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
             // Detect button click - only check buttons that could be under the
             // mouse
-            for (const Button& btn : buttons) {
+            for (const Button &btn : buttons) {
                 if (CheckCollisionPointRec(mouse, btn.rect)) {
                     clicked = btn.id;
                     break;

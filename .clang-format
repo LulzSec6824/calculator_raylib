@@ -1,7 +1,9 @@
 Language: Cpp
-BasedOnStyle: Google
+BasedOnStyle: LLVM
 DerivePointerAlignment: false
 IndentWidth: 4
+TabWidth: 4
 AlignConsecutiveAssignments: Consecutive
 Cpp11BracedListStyle: true
 ColumnLimit: 150
+SortIncludes: true

@@ -2,7 +2,7 @@
 
 Display::Display(Rectangle box, Font displayFont) : displayBox(box), font(displayFont), maxTextWidth(box.width - 40) {}
 
-void Display::draw(const CalculatorState& calc, const Theme& theme, const std::string& perfInfo) {
+void Display::draw(const CalculatorState &calc, const Theme &theme, const std::string &perfInfo) {
     // Get theme colors based on current mode
     Color displayColor = theme.getDisplayColor(calc.isDarkMode);
     Color textColor    = theme.getTextColor(calc.isDarkMode);
@@ -51,13 +51,13 @@ void Display::draw(const CalculatorState& calc, const Theme& theme, const std::s
     DrawTextEx(font, perfInfo.c_str(), Vector2{displayBox.x + 10.0f, displayBox.y + displayBox.height - 30.0f}, statusFontSize, 0, fadedColor);
 
     // Display mode indicator
-    const char* modeText = calc.isDarkMode ? "Dark Mode" : "Light Mode";
+    const char *modeText = calc.isDarkMode ? "Dark Mode" : "Light Mode";
     DrawTextEx(font, modeText, Vector2{displayBox.x + displayBox.width - 100.0f, displayBox.y + displayBox.height - 30.0f}, statusFontSize, 0,
                fadedColor);
 #endif
 }
 
-std::string Display::truncateToFit(const std::string& text, float fontSize, float maxWidth) const {
+std::string Display::truncateToFit(const std::string &text, float fontSize, float maxWidth) const {
     std::string result = text;
     Vector2 size       = MeasureTextEx(font, result.c_str(), fontSize, 0);
     while (size.x > maxWidth && result.length() > 1) {

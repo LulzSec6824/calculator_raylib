@@ -6,7 +6,7 @@
 #include "theme.h"
 
 class Display {
-   private:
+  private:
     Rectangle displayBox;
     Font font;
     float maxTextWidth;
@@ -15,12 +15,12 @@ class Display {
     float historyFontSize{20.0f};
     float statusFontSize{16.0f};
 
-   public:
+  public:
     Display(Rectangle box, Font displayFont);
 
     // Draw the calculator display with all elements
-    void draw(const CalculatorState& calc, const Theme& theme, const std::string& perfInfo);
+    void draw(const CalculatorState &calc, const Theme &theme, const std::string &perfInfo);
 
     // Helper function to truncate string to fit width
-    std::string truncateToFit(const std::string& text, float fontSize, float maxWidth) const;
+    std::string truncateToFit(const std::string &text, float fontSize, float maxWidth) const;
 };

@@ -4,13 +4,13 @@
 #include <vector>
 
 // Function to check if a file exists
-bool file_exists(const std::string& file_path) {
+bool file_exists(const std::string &file_path) {
     std::ifstream file(file_path);
     return file.good();
 }
 
 // Function to modify the header file
-void modify_header(const std::string& header_path) {
+void modify_header(const std::string &header_path) {
     if (!file_exists(header_path)) {
         std::cerr << "Error: Header file not found at " << header_path << '\n';
         return;
@@ -54,7 +54,7 @@ int main() {
     // Paths to the generated header files (relative to the build directory)
     std::vector<std::string> header_files{"../includes/font_ubuntu.h", "../includes/icon_calc.h"};
 
-    for (const std::string& header_file : header_files) {
+    for (const std::string &header_file : header_files) {
         modify_header(header_file);
     }
 

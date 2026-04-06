@@ -30,7 +30,7 @@ int main() {
         }
         UnloadImage(icon);
 
-    } catch (const std::exception& e) {
+    } catch (const std::exception &e) {
         CloseWindow();
         return 1;
     }

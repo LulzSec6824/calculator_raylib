@@ -9,22 +9,22 @@
 #include "../raylib/src/raylib.h"
 
 // Function to load embedded font
-Font LoadEmbeddedFont(void) {
+inline Font LoadEmbeddedFont(void) {
     // Load font from memory
     Font font = {};
 
     // Create a new font from embedded data
-    font.baseSize     = 64;  // From font_ubuntu.h
-    font.glyphCount   = 95;  // From font_ubuntu.h
-    font.glyphPadding = 4;   // From font_ubuntu.h
+    font.baseSize     = 64; // From font_ubuntu.h
+    font.glyphCount   = 95; // From font_ubuntu.h
+    font.glyphPadding = 4;  // From font_ubuntu.h
 
     // Load texture from memory using the decompressed data
     int fontDataSize    = 0;
-    unsigned char* data = DecompressData(fontData_FontUbuntu, COMPRESSED_DATA_SIZE_FONT_FONTUBUNTU, &fontDataSize);
+    unsigned char *data = DecompressData(fontData_FontUbuntu, COMPRESSED_DATA_SIZE_FONT_FONTUBUNTU, &fontDataSize);
     Image imFont        = {data, 1024, 512, 1, 2};
 
     font.texture = LoadTextureFromImage(imFont);
-    UnloadImage(imFont);  // Uncompressed data can be unloaded from memory
+    UnloadImage(imFont); // Uncompressed data can be unloaded from memory
 
     // Assign glyph recs and info data directly
     font.recs   = fontRecs_FontUbuntu;
@@ -34,7 +34,7 @@ Font LoadEmbeddedFont(void) {
 }
 
 // Function to load embedded icon
-Image LoadEmbeddedIcon(void) {
+inline Image LoadEmbeddedIcon(void) {
     // Create image from embedded data
     Image icon   = {};
     icon.data    = ICON_CALC_DATA;
@@ -46,4 +46,4 @@ Image LoadEmbeddedIcon(void) {
     return icon;
 }
 
-#endif  // EMBEDDED_RESOURCES_H
+#endif // EMBEDDED_RESOURCES_H

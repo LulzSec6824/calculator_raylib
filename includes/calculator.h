@@ -18,4 +18,4 @@ struct CalculatorState {
     CalculatorState() = default;
 };
 
-void HandleButtonPress(CalculatorState& state, int buttonId);
+void HandleButtonPress(CalculatorState &state, int buttonId);
